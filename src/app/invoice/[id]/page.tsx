@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -22,7 +23,7 @@ const convertAmountToWords = (amount: number) => {
     if (!amount || isNaN(amount)) return "";
     try {
       const words = toWords.convert(amount);
-      return words.charAt(0).toUpperCase() + words.slice(1) + " Naira Only";
+      return words.charAt(0).toUpperCase() + words.slice(1) + " Nigerian Naira Only";
     } catch (error) {
       console.error("Error converting amount to words:", error);
       return "Invalid amount";
@@ -31,12 +32,11 @@ const convertAmountToWords = (amount: number) => {
 
 const formatCurrency = (amount: number | null | undefined) => {
     if (amount === null || amount === undefined || isNaN(amount)) {
-        return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(0);
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(0);
     }
-    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
+    return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
 };
 
-const logo = PlaceHolderImages.find(img => img.id === 'company-logo');
 
 const InvoicePage = () => {
     const { id: invoiceId } = useParams();
@@ -47,6 +47,8 @@ const InvoicePage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [printedDate, setPrintedDate] = useState('');
 
+    const logo = PlaceHolderImages.find(img => img.id === 'company-logo');
+
     useEffect(() => {
         setPrintedDate(format(new Date(), 'dd-MM-yyyy'));
     }, []);
@@ -54,24 +56,34 @@ const InvoicePage = () => {
     const fetchInvoice = useCallback(async () => {
         if (!invoiceId) return;
         setIsLoading(true);
-        try {
-            const response = await fetch(`https://hariindustries.net/busa-api/database/get_invoice.php?id=${invoiceId}`);
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => null);
-                throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
-            }
-            const result = await response.json();
-            if (result.success && result.data) {
-                setInvoice(result.data);
-            } else {
-                throw new Error(result.message || "Failed to fetch invoice details.");
-            }
-        } catch (error: any) {
-            toast({ title: "Error", description: error.message, variant: "destructive" });
-        } finally {
+        // This is a mock fetch. Replace with your actual API call.
+        setTimeout(() => {
+            const mockInvoice: Invoice = {
+                id: '1',
+                invoiceNumber: 'ANLSALE/33145/2025',
+                issueDate: '2025-11-10T00:00:00.000Z',
+                companyDetails: {
+                    name: 'Aspira Nigeria Ltd-2025',
+                    address: 'Km 8, Hadejia Road, Kano, Kano State.',
+                },
+                customer: {
+                    name: 'Auwal Muhd Nasir Ent',
+                },
+                deliveryNote: 'ANLDN/33145/2025',
+                despatchDocumentNo: '2408',
+                destination: 'SOKOTO',
+                items: [
+                    { id: 1, productName: 'Viva Detergent 80g', baseQty: { actual: 1500, billed: 1500 }, altQty: '75,000 Pcs', rate: 7500.00, per: 'Ctn', amount: 11250000.00 },
+                    { id: 2, productName: 'Viva Detergent 170g', baseQty: { actual: 2500, billed: 2500 }, altQty: '65,000 Pcs', rate: 7950.00, per: 'Ctn', amount: 19875000.00 },
+                    { id: 3, productName: 'Viva Detergent 800g', baseQty: { actual: 500, billed: 500 }, altQty: '3,500 Pcs', rate: 9850.00, per: 'Ctn', amount: 4925000.00 },
+                ],
+                totalAmount: 36050000.00,
+                narration: '',
+            };
+            setInvoice(mockInvoice);
             setIsLoading(false);
-        }
-    }, [invoiceId, toast]);
+        }, 1000);
+    }, [invoiceId]);
 
     useEffect(() => {
         fetchInvoice();
@@ -89,12 +101,6 @@ const InvoicePage = () => {
         } catch {
             return 'N/A';
         }
-    }
-    
-    const getDeliveryNote = (invoiceNum: string) => {
-        if (!invoiceNum) return 'N/A';
-        const parts = invoiceNum.split('/');
-        return parts.length > 2 ? `ANLDN/${parts[1]}/${parts[2]}`: 'N/A';
     }
 
     if (isLoading) {
@@ -115,13 +121,18 @@ const InvoicePage = () => {
             </div>
         );
     }
+    
+    const totals = invoice.items.reduce((acc, item) => {
+        acc.baseQtyActual += item.baseQty.actual;
+        acc.baseQtyBilled += item.baseQty.billed;
+        return acc;
+    }, { baseQtyActual: 0, baseQtyBilled: 0 });
 
     const company = invoice.companyDetails;
     const customer = invoice.customer;
-    const balances = invoice.balances;
 
     return (
-        <div className="bg-background p-4 sm:p-8 font-body">
+        <div className="bg-gray-100 p-4 sm:p-8 font-sans">
             <style jsx global>{`
                 @media print {
                     body {
@@ -132,82 +143,122 @@ const InvoicePage = () => {
                         padding: 0;
                         box-shadow: none;
                         border: none;
+                        font-size: 10px;
                     }
                     .no-print {
                         display: none !important;
                     }
                     @page {
                         size: A4;
-                        margin: 20mm;
+                        margin: 15mm;
                     }
                 }
                 .invoice-table th, .invoice-table td {
-                    border: 1px solid #e5e7eb;
-                    padding: 0.5rem;
+                    border: 1px solid #000;
+                    padding: 0.25rem 0.5rem;
+                }
+                .invoice-table th {
+                    text-align: center;
+                    font-weight: bold;
+                }
+                .border-grid {
+                    border: 1px solid #000;
+                }
+                .border-grid > div {
+                    border-bottom: 1px solid #000;
+                }
+                .border-grid > div:last-child {
+                    border-bottom: 0;
+                }
+                 .border-grid > div > div {
+                    padding: 2px 4px;
                 }
             `}</style>
             
-            <div className="max-w-4xl mx-auto bg-card p-8 rounded-lg shadow-lg printable-area">
-                <header className="mb-8">
-                    <div className="flex justify-between items-start border-b-2 border-black pb-4">
+            <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg printable-area">
+                <header className="mb-4">
+                    <div className="flex justify-between items-start pb-4">
                         <div className="w-1/2">
-                            {logo && (
-                                <div className="mb-4">
+                             {logo && (
+                                <div className="mb-2">
                                     <Image
-                                        src={logo.imageUrl}
+                                        src={'/Aspira-logo.png'}
                                         alt="Company Logo"
-                                        width={120}
-                                        height={40}
+                                        width={150}
+                                        height={50}
                                         className="object-contain"
-                                        data-ai-hint={logo.imageHint}
                                     />
                                 </div>
                             )}
-                            <h1 className="text-xl font-bold">{company.name}</h1>
-                            <p className="text-sm">{company.address}</p>
-                            <p className="text-sm">+234 8093939368, 08125293535</p>
-                            <p className="text-sm">billing@hariindustries.ng, contact@hariindustries.ng</p>
-                            <p className="text-sm">www.hariindustries.net</p>
+                            <h1 className="text-base font-bold">{company.name}</h1>
+                            <p className="text-xs">{company.address}</p>
                         </div>
                         <div className="w-1/2 text-right">
-                             <h2 className="text-2xl font-bold uppercase">Sales Invoice</h2>
-                             <p className="text-xs text-muted-foreground">Printed by: Management on {printedDate} (Original)</p>
+                             <h2 className="text-xl font-bold uppercase">Sales Invoice</h2>
+                             <p className="text-xs text-gray-500">Printed by: haidar on {printedDate} (Original)</p>
                         </div>
                     </div>
-                    <div className="flex justify-between mt-4 text-sm">
-                        <div className="w-1/2">
-                            <p className="font-bold">Buyer</p>
-                            <p>{customer.name}</p>
+                     <div className="flex justify-between mt-2 text-xs">
+                        <div className="w-1/2 space-y-1">
+                            <div className="font-bold">Buyer</div>
+                            <div>{customer.name}</div>
+                            <div>Terms and Conditions</div>
                         </div>
                         <div className="w-1/2">
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 border p-2 rounded-md">
-                                <div><span className="font-semibold">Invoice No:</span></div>
-                                <div>{invoice.invoiceNumber}</div>
-                                <div><span className="font-semibold">Dated:</span></div>
-                                <div>{formatDateSafe(invoice.issueDate)}</div>
-                                
-                                <div><span className="font-semibold">Delivery Note:</span></div>
-                                <div>{getDeliveryNote(invoice.invoiceNumber)}</div>
-                                <div><span className="font-semibold">Dated:</span></div>
-                                <div>{formatDateSafe(invoice.issueDate)}</div>
-
-                                <div><span className="font-semibold">Destination:</span></div>
-                                <div>SOKOTO</div>
+                            <div className="border-grid">
+                                <div className="grid grid-cols-[auto,1fr,auto,1fr]">
+                                    <div className="font-semibold">Invoice No:</div>
+                                    <div>{invoice.invoiceNumber}</div>
+                                    <div className="font-semibold">Dated:</div>
+                                    <div className="text-right">{formatDateSafe(invoice.issueDate)}</div>
+                                </div>
+                                <div className="grid grid-cols-[auto,1fr,auto,1fr]">
+                                    <div className="font-semibold">Delivery Note:</div>
+                                    <div>{invoice.deliveryNote}</div>
+                                    <div className="font-semibold">Dated:</div>
+                                    <div className="text-right">{formatDateSafe(invoice.issueDate)}</div>
+                                </div>
+                                 <div className="grid grid-cols-[auto,1fr]">
+                                    <div className="font-semibold">Other Reference(s):</div>
+                                    <div></div>
+                                </div>
+                                <div className="grid grid-cols-[auto,1fr,auto,1fr]">
+                                    <div className="font-semibold">Buyer's Order No.:</div>
+                                    <div></div>
+                                     <div className="font-semibold">Dated:</div>
+                                    <div className="text-right"></div>
+                                </div>
+                                <div className="grid grid-cols-[auto,1fr,auto,1fr]">
+                                    <div className="font-semibold">Despatch Document No.:</div>
+                                    <div>{invoice.despatchDocumentNo}</div>
+                                    <div className="font-semibold">Destination:</div>
+                                    <div className="text-right">{invoice.destination}</div>
+                                </div>
+                                <div className="grid grid-cols-[auto,1fr]">
+                                    <div className="font-semibold">Despatched Through:</div>
+                                    <div></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </header>
 
                 <main>
-                    <table className="w-full text-sm text-left invoice-table border-collapse">
-                        <thead className="bg-muted/50">
+                    <table className="w-full text-xs text-left invoice-table border-collapse border border-black">
+                        <thead>
                             <tr>
-                                <th className="w-12">S.No</th>
-                                <th className="w-1/2">Item Description</th>
-                                <th>Quantity</th>
-                                <th>Rate</th>
-                                <th>Per</th>
-                                <th className="text-right">Amount</th>
+                                <th rowSpan={2} className="w-10">S.No</th>
+                                <th rowSpan={2} className="w-2/5">Item Description</th>
+                                <th colSpan={2}>Base Qty</th>
+                                <th rowSpan={2}>Alt Qty</th>
+                                <th rowSpan={2}>Rate</th>
+                                <th rowSpan={2}>Per</th>
+                                <th rowSpan={2}>Disc.%</th>
+                                <th rowSpan={2} className="text-right">Amount</th>
+                            </tr>
+                            <tr>
+                                <th>Actual</th>
+                                <th>Billed</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -215,89 +266,71 @@ const InvoicePage = () => {
                                 <tr key={item.id}>
                                     <td className="text-center">{index + 1}</td>
                                     <td>{item.productName}</td>
-                                    <td className="text-center">{item.quantity}</td>
-                                    <td className="text-right">{formatCurrency(item.unitPrice).replace('₦', '')}</td>
-                                    <td className="text-center">{item.unitOfMeasure}</td>
-                                    <td className="text-right font-medium">{formatCurrency(item.totalPrice).replace('₦', '')}</td>
+                                    <td className="text-center">{item.baseQty.actual}</td>
+                                    <td className="text-center">{item.baseQty.billed}</td>
+                                    <td className="text-center">{item.altQty}</td>
+                                    <td className="text-right">{formatCurrency(item.rate)}</td>
+                                    <td className="text-center">{item.per}</td>
+                                    <td></td>
+                                    <td className="text-right font-medium">{formatCurrency(item.amount)}</td>
+                                </tr>
+                            ))}
+                            {/* Add empty rows to fill up space */}
+                             {Array.from({ length: 15 - invoice.items.length }).map((_, i) => (
+                                <tr key={`empty-${i}`} style={{height: '28px'}}>
+                                    <td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
                                 </tr>
                             ))}
                         </tbody>
+                        <tfoot>
+                            <tr className="font-bold">
+                                <td colSpan={2} className="text-right">Total</td>
+                                <td className="text-center">{totals.baseQtyActual}</td>
+                                <td className="text-center">{totals.baseQtyBilled}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td className="text-right">{formatCurrency(invoice.totalAmount)}</td>
+                            </tr>
+                        </tfoot>
                     </table>
 
-                    <div className="flex justify-end mt-4">
-                        <div className="w-2/5 space-y-2 text-sm">
-                            <div className="flex justify-between border-t pt-2">
-                                <span>Subtotal:</span>
-                                <span className="font-medium">{formatCurrency(invoice.subTotal)}</span>
-                            </div>
-                            {invoice.discountAmount !== null && invoice.discountAmount > 0 && (
-                                <div className="flex justify-between">
-                                    <span>Discount:</span>
-                                    <span>- {formatCurrency(invoice.discountAmount)}</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between">
-                                <span>VAT (7.5%):</span>
-                                <span>{formatCurrency(invoice.taxAmount)}</span>
-                            </div>
-                            <div className="flex justify-between text-base font-bold border-t-2 border-black pt-2">
-                                <span>TOTAL:</span>
-                                <span>{formatCurrency(invoice.totalAmount)}</span>
-                            </div>
-                        </div>
-                    </div>
                 </main>
                 
-                <footer className="mt-12 text-sm">
-                    <div className="border-t border-b py-2">
+                <footer className="mt-4 text-xs">
+                    <div>
                         <p>
-                            <span className="font-semibold">Amount In Words:</span>{" "}
+                            <span className="font-semibold">Amount In Words:</span>{' '}
                             {convertAmountToWords(invoice.totalAmount)}
                         </p>
                     </div>
 
-                     <div className="mt-4 border p-4 bg-muted/50 rounded-md">
-                        <h4 className="font-bold text-base mb-2">Account Summary</h4>
-                        <div className="grid grid-cols-2 gap-x-4">
-                            <div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Previous Balance:</span>
-                                    <span className="font-medium">{formatCurrency(balances?.previousBalance)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">This Invoice:</span>
-                                    <span className="font-medium">{formatCurrency(invoice.totalAmount)}</span>
-                                </div>
-                            </div>
-                             <div>
-                                <div className="flex justify-between font-bold text-lg">
-                                     <span className="text-gray-800">New Balance:</span>
-                                    <span className="text-primary">{formatCurrency(balances?.newBalance)}</span>
-                                </div>
-                             </div>
-                        </div>
-                    </div>
-                    
-                    <div className="mt-8">
+                    <div className="mt-4">
                         <p className="font-semibold">Narration:</p>
-                        <p className="mt-1 text-muted-foreground">{invoice.notes || 'No narration provided.'}</p>
+                        <p className="mt-1 text-gray-600">{invoice.narration || ''}</p>
                     </div>
 
-                    <div className="flex justify-between mt-20 pt-8 border-t">
+                    <div className="flex justify-between mt-12 pt-4">
                         <div className="text-center">
-                            <p className="font-semibold">____________________</p>
-                            <p>Prepared by</p>
+                            <p>____________________</p>
+                            <p className="font-semibold">Prepared by</p>
+                            <p>Naser Najjar</p>
                         </div>
                         <div className="text-center">
-                            <p className="font-semibold">____________________</p>
-                            <p>Verified by</p>
+                            <p>____________________</p>
+                            <p className="font-semibold">Verified by</p>
                         </div>
                         <div className="text-center">
-                            <p className="font-semibold">____________________</p>
-                            <p>Authorised Signatory</p>
+                            <p className="font-semibold">E. & O.E</p>
+                        </div>
+                        <div className="text-center">
+                             <p>____________________</p>
+                            <p className="font-semibold">Authorised Signatory</p>
+                            <p>Haidar</p>
                         </div>
                     </div>
-                    <div className="text-center mt-4 text-muted-foreground">
+                     <div className="text-center mt-4 text-gray-500">
                         <p>◆ End of List ◆</p>
                     </div>
                 </footer>
@@ -311,3 +344,5 @@ const InvoicePage = () => {
 };
 
 export default InvoicePage;
+
+    
