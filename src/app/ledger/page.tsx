@@ -15,7 +15,7 @@ import {
   TableFooter
 } from "@/components/ui/table";
 import { DateRange } from 'react-day-picker';
-import { addDays, format } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 interface LedgerEntry {
@@ -109,7 +109,7 @@ const GeneralLedgerPage = () => {
   const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
   const [selectedAccount, setSelectedAccount] = useState('101100');
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    from: new Date(new Date().getFullYear(), 0, 1), // Default to start of year
     to: new Date(),
   })
   const [isLoading, setIsLoading] = useState(false);
@@ -135,7 +135,15 @@ const GeneralLedgerPage = () => {
     try {
         const response = await fetch(url.toString());
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            try {
+                // Try to parse as JSON for a more structured error message
+                const errorJson = JSON.parse(errorText);
+                throw new Error(errorJson.error || `HTTP error! status: ${response.status}`);
+            } catch (e) {
+                // If not JSON, use the raw text
+                throw new Error(errorText || `HTTP error! status: ${response.status}`);
+            }
         }
         const data = await response.json();
         if (data.error) {
@@ -143,7 +151,7 @@ const GeneralLedgerPage = () => {
         }
         
         const entries: LedgerEntry[] = data.map((item: any) => ({
-            date: item.transaction_date,
+            date: item.date,
             description: item.description,
             debit: item.debit ? parseFloat(item.debit) : null,
             credit: item.credit ? parseFloat(item.credit) : null,
@@ -153,7 +161,7 @@ const GeneralLedgerPage = () => {
 
     } catch (e: any) {
         console.error("Failed to fetch ledger entries:", e);
-        setError(`Failed to load data: ${e.message}`);
+        setError(`Failed to load data. The server responded with an error. Please check the API script.`);
         setLedgerEntries([]);
     } finally {
         setIsLoading(false);
@@ -163,6 +171,17 @@ const GeneralLedgerPage = () => {
 
   const endingBalance = ledgerEntries.length > 0 ? ledgerEntries[ledgerEntries.length - 1].balance : 0;
   const selectedAccountName = chartOfAccounts.find(acc => acc.code === selectedAccount)?.name || '';
+
+  const formatDateSafe = (dateString: string | undefined | null) => {
+    if (!dateString) return 'N/A';
+    try {
+        const date = parseISO(dateString);
+        return isValid(date) ? format(date, 'dd-MM-yyyy') : 'Invalid Date';
+    } catch {
+        return 'Invalid Date';
+    }
+  }
+
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -234,7 +253,7 @@ const GeneralLedgerPage = () => {
                             <TableBody>
                                 {ledgerEntries.map((entry, index) => (
                                     <TableRow key={index}>
-                                        <TableCell>{format(new Date(entry.date), 'dd-MM-yyyy')}</TableCell>
+                                        <TableCell>{formatDateSafe(entry.date)}</TableCell>
                                         <TableCell>{entry.description}</TableCell>
                                         <TableCell className="text-right font-mono">{formatCurrency(entry.debit)}</TableCell>
                                         <TableCell className="text-right font-mono">{formatCurrency(entry.credit)}</TableCell>
@@ -264,5 +283,3 @@ const GeneralLedgerPage = () => {
 };
 
 export default GeneralLedgerPage;
-
-    
