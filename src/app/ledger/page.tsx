@@ -1,7 +1,7 @@
 
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import React, { useState, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
@@ -26,18 +26,14 @@ interface LedgerEntry {
     balance: number;
 }
 
-const formatCurrency = (amount: number | null | undefined, currency: string = 'NGN') => {
+const formatCurrency = (amount: number | null | undefined) => {
     if (amount === null || amount === undefined || isNaN(amount)) {
         return '-';
     }
-    // Using en-NG to get the Naira symbol, but forcing USD-style formatting for comma/period separators.
-    const formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currency,
+    return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-    });
-    return formatter.format(amount);
+    }).format(amount);
 };
 
 
@@ -135,15 +131,14 @@ const GeneralLedgerPage = () => {
     try {
         const response = await fetch(url.toString());
         if (!response.ok) {
-            const errorText = await response.text();
+            let errorText;
             try {
-                // Try to parse as JSON for a more structured error message
-                const errorJson = JSON.parse(errorText);
-                throw new Error(errorJson.error || `HTTP error! status: ${response.status}`);
+                const errorJson = await response.json();
+                errorText = errorJson.error || `HTTP error! status: ${response.status}`;
             } catch (e) {
-                // If not JSON, use the raw text
-                throw new Error(errorText || `HTTP error! status: ${response.status}`);
+                errorText = `HTTP error! status: ${response.status}`;
             }
+            throw new Error(errorText);
         }
         const data = await response.json();
         if (data.error) {
@@ -161,7 +156,7 @@ const GeneralLedgerPage = () => {
 
     } catch (e: any) {
         console.error("Failed to fetch ledger entries:", e);
-        setError(`Failed to load data. The server responded with an error. Please check the API script.`);
+        setError(`Failed to load data: ${e.message}. Please check the API script and server logs.`);
         setLedgerEntries([]);
     } finally {
         setIsLoading(false);
