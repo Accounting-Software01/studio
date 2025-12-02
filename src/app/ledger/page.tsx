@@ -1,5 +1,6 @@
-"use client";
-import React, { useState } from 'react';
+
+'use client';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,23 +16,30 @@ import {
 } from "@/components/ui/table";
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
+import { Loader2, AlertCircle } from 'lucide-react';
 
+interface LedgerEntry {
+    date: string;
+    description: string;
+    debit: number | null;
+    credit: number | null;
+    balance: number;
+}
 
-const formatCurrency = (amount: number | null | undefined, currency: string = 'USD') => {
+const formatCurrency = (amount: number | null | undefined, currency: string = 'NGN') => {
     if (amount === null || amount === undefined || isNaN(amount)) {
         return '-';
     }
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    // Using en-NG to get the Naira symbol, but forcing USD-style formatting for comma/period separators.
+    const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    return formatter.format(amount);
 };
 
-
-// Mock data - replace with API call
-const mockLedgerEntries = [
-    { date: '2024-07-01', description: 'Opening Balance', debit: null, credit: null, balance: 145000.00 },
-    { date: '2024-07-15', description: 'Payment from Customer A', debit: 15000.00, credit: null, balance: 160000.00 },
-    { date: '2024-07-22', description: 'Salary Payments', debit: null, credit: 30000.00, balance: 130000.00 },
-    { date: '2024-07-28', description: 'Payment to Supplier B', debit: null, credit: 25000.00, balance: 105000.00 },
-];
 
 const chartOfAccounts = [
     { code: '101100', name: 'Cash at Bank - Main Account' },
@@ -98,12 +106,60 @@ const chartOfAccounts = [
 
 
 const GeneralLedgerPage = () => {
-  const [ledgerEntries, setLedgerEntries] = useState(mockLedgerEntries);
+  const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
   const [selectedAccount, setSelectedAccount] = useState('101100');
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: new Date(2024, 6, 1),
-    to: addDays(new Date(2024, 6, 31), 0),
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    to: new Date(),
   })
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchLedgerEntries = useCallback(async () => {
+    if (!selectedAccount || !dateRange?.from || !dateRange?.to) {
+        setLedgerEntries([]);
+        return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    
+    const fromDate = format(dateRange.from, 'yyyy-MM-dd');
+    const toDate = format(dateRange.to, 'yyyy-MM-dd');
+    
+    const url = new URL('https://hariindustries.net/busa-api/database/general-ledger.php');
+    url.searchParams.append('accountId', selectedAccount);
+    url.searchParams.append('fromDate', fromDate);
+    url.searchParams.append('toDate', toDate);
+
+    try {
+        const response = await fetch(url.toString());
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        const entries: LedgerEntry[] = data.map((item: any) => ({
+            date: item.transaction_date,
+            description: item.description,
+            debit: item.debit ? parseFloat(item.debit) : null,
+            credit: item.credit ? parseFloat(item.credit) : null,
+            balance: parseFloat(item.balance),
+        }));
+        setLedgerEntries(entries);
+
+    } catch (e: any) {
+        console.error("Failed to fetch ledger entries:", e);
+        setError(`Failed to load data: ${e.message}`);
+        setLedgerEntries([]);
+    } finally {
+        setIsLoading(false);
+    }
+  }, [selectedAccount, dateRange]);
+
 
   const endingBalance = ledgerEntries.length > 0 ? ledgerEntries[ledgerEntries.length - 1].balance : 0;
   const selectedAccountName = chartOfAccounts.find(acc => acc.code === selectedAccount)?.name || '';
@@ -139,7 +195,10 @@ const GeneralLedgerPage = () => {
                          <DateRangePicker date={dateRange} onDateChange={setDateRange} id="date-range"/>
                     </div>
                     <div className="self-end">
-                        <Button>View Ledger</Button>
+                        <Button onClick={fetchLedgerEntries} disabled={isLoading}>
+                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            View Ledger
+                        </Button>
                     </div>
                 </div>
 
@@ -151,6 +210,17 @@ const GeneralLedgerPage = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {isLoading ? (
+                            <div className="flex justify-center items-center h-40">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            </div>
+                        ) : error ? (
+                            <div className="flex flex-col justify-center items-center h-40 text-destructive">
+                                <AlertCircle className="h-8 w-8 mb-2" />
+                                <p className="font-semibold">Error</p>
+                                <p>{error}</p>
+                            </div>
+                        ) : ledgerEntries.length > 0 ? (
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -179,6 +249,11 @@ const GeneralLedgerPage = () => {
                                 </TableRow>
                             </TableFooter>
                         </Table>
+                        ) : (
+                             <div className="flex justify-center items-center h-40 text-muted-foreground">
+                                <p>No transactions for the selected period.</p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -189,3 +264,5 @@ const GeneralLedgerPage = () => {
 };
 
 export default GeneralLedgerPage;
+
+    
