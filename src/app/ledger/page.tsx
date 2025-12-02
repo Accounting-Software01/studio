@@ -3,7 +3,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import {
@@ -24,6 +23,7 @@ interface LedgerEntry {
     description: string;
     debit: number | null;
     credit: number | null;
+    balance?: number;
 }
 
 const formatCurrency = (amount: number | null | undefined) => {
@@ -35,11 +35,6 @@ const formatCurrency = (amount: number | null | undefined) => {
         maximumFractionDigits: 2
     }).format(amount);
 };
-
-const parseCurrency = (value: string): number => {
-    return parseFloat(value.replace(/,/g, '')) || 0;
-};
-
 
 const chartOfAccounts = [
     { code: '101100', name: 'Cash at Bank - Main Account' },
@@ -91,7 +86,7 @@ const chartOfAccounts = [
     { code: '201110', name: 'Payroll Control Account (AUTO)' },
     { code: '201210', name: 'VAT Output Payable' },
     { code: '201220', name: 'VAT Input Offset' },
-    { code: '201230', name: 'PAYE Tax Payable' },
+    { code_name: '201230', name: 'PAYE Tax Payable' },
     { code: '201240', name: 'Withholding Tax (WHT) Payable' },
     { code: '201250', name: 'Corporate Income Tax Payable' },
     { code: '201260', name: 'Pension Payable' },
@@ -107,12 +102,11 @@ const chartOfAccounts = [
 
 const GeneralLedgerPage = () => {
   const [fetchedEntries, setFetchedEntries] = useState<LedgerEntry[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState('101100');
+  const [selectedAccount, setSelectedAccount] = useState('101200');
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
     from: new Date(new Date().getFullYear(), 0, 1),
     to: new Date(),
   })
-  const [openingBalance, setOpeningBalance] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -150,14 +144,7 @@ const GeneralLedgerPage = () => {
             throw new Error(data.error);
         }
         
-        // The backend should return only transactions, not the balance.
-        const entries: LedgerEntry[] = data.map((item: any) => ({
-            date: item.date,
-            description: item.description,
-            debit: item.debit ? parseFloat(item.debit) : null,
-            credit: item.credit ? parseFloat(item.credit) : null,
-        }));
-        setFetchedEntries(entries);
+        setFetchedEntries(data);
 
     } catch (e: any) {
         console.error("Failed to fetch ledger entries:", e);
@@ -168,22 +155,20 @@ const GeneralLedgerPage = () => {
     }
   }, [selectedAccount, dateRange]);
 
-  const { entriesWithBalance, endingBalance } = useMemo(() => {
-    const startBalance = parseCurrency(openingBalance);
-    let currentBalance = startBalance;
-    
-    const entries = fetchedEntries.map(entry => {
-        const debit = entry.debit || 0;
-        const credit = entry.credit || 0;
-        currentBalance = currentBalance + debit - credit;
-        return { ...entry, balance: currentBalance };
-    });
+  const { openingBalance, endingBalance, entriesWithBalance } = useMemo(() => {
+    if (fetchedEntries.length === 0) {
+      return { openingBalance: 0, endingBalance: 0, entriesWithBalance: [] };
+    }
+    const obEntry = fetchedEntries[0];
+    const ob = obEntry.description === 'Opening Balance' ? obEntry.balance ?? 0 : 0;
+    const transactions = obEntry.description === 'Opening Balance' ? fetchedEntries.slice(1) : fetchedEntries;
 
     return {
-        entriesWithBalance: entries,
-        endingBalance: currentBalance,
+        openingBalance: ob,
+        endingBalance: fetchedEntries[fetchedEntries.length - 1]?.balance ?? 0,
+        entriesWithBalance: transactions,
     };
-  }, [fetchedEntries, openingBalance]);
+  }, [fetchedEntries]);
 
   const selectedAccountName = chartOfAccounts.find(acc => acc.code === selectedAccount)?.name || '';
 
@@ -197,18 +182,17 @@ const GeneralLedgerPage = () => {
     }
   }
 
-
   return (
     <div className="container mx-auto p-4 md:p-8">
         <Card className="max-w-5xl mx-auto">
             <CardHeader>
                 <CardTitle>General Ledger</CardTitle>
                 <CardDescription>
-                    View the detailed transaction history for any account.
+                    View the detailed transaction history for any account. Opening balance is determined by the start of the financial year.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 border rounded-lg items-end bg-muted/20">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-lg items-end bg-muted/20">
                     <div className="md:col-span-2 space-y-2">
                         <label htmlFor="account-select" className="font-semibold text-sm">Account</label>
                         <Select value={selectedAccount} onValueChange={setSelectedAccount}>
@@ -228,17 +212,7 @@ const GeneralLedgerPage = () => {
                          <label htmlFor="date-range" className="font-semibold text-sm">Date Range</label>
                          <DateRangePicker date={dateRange} onDateChange={setDateRange} id="date-range"/>
                     </div>
-                     <div className="space-y-2">
-                         <label htmlFor="opening-balance" className="font-semibold text-sm">Opening Balance</label>
-                         <Input
-                            id="opening-balance"
-                            type="number"
-                            placeholder="0.00"
-                            value={openingBalance}
-                            onChange={(e) => setOpeningBalance(e.target.value)}
-                         />
-                    </div>
-                    <div className="md:col-start-4 self-end">
+                    <div className="md:col-start-3">
                         <Button onClick={fetchLedgerEntries} disabled={isLoading} className="w-full">
                             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                             View Ledger
@@ -281,7 +255,7 @@ const GeneralLedgerPage = () => {
                                     <TableCell className="font-semibold">Opening Balance</TableCell>
                                     <TableCell></TableCell>
                                     <TableCell></TableCell>
-                                    <TableCell className="text-right font-mono font-semibold">{formatCurrency(parseCurrency(openingBalance))}</TableCell>
+                                    <TableCell className="text-right font-mono font-semibold">{formatCurrency(openingBalance)}</TableCell>
                                 </TableRow>
                                 {entriesWithBalance.map((entry, index) => (
                                     <TableRow key={index}>
