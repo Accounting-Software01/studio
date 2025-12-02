@@ -1,8 +1,9 @@
 
 'use client';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import {
@@ -23,7 +24,6 @@ interface LedgerEntry {
     description: string;
     debit: number | null;
     credit: number | null;
-    balance: number;
 }
 
 const formatCurrency = (amount: number | null | undefined) => {
@@ -34,6 +34,10 @@ const formatCurrency = (amount: number | null | undefined) => {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     }).format(amount);
+};
+
+const parseCurrency = (value: string): number => {
+    return parseFloat(value.replace(/,/g, '')) || 0;
 };
 
 
@@ -102,18 +106,19 @@ const chartOfAccounts = [
 
 
 const GeneralLedgerPage = () => {
-  const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
+  const [fetchedEntries, setFetchedEntries] = useState<LedgerEntry[]>([]);
   const [selectedAccount, setSelectedAccount] = useState('101100');
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), 0, 1), // Default to start of year
+    from: new Date(new Date().getFullYear(), 0, 1),
     to: new Date(),
   })
+  const [openingBalance, setOpeningBalance] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchLedgerEntries = useCallback(async () => {
     if (!selectedAccount || !dateRange?.from || !dateRange?.to) {
-        setLedgerEntries([]);
+        setFetchedEntries([]);
         return;
     }
 
@@ -145,26 +150,41 @@ const GeneralLedgerPage = () => {
             throw new Error(data.error);
         }
         
+        // The backend should return only transactions, not the balance.
         const entries: LedgerEntry[] = data.map((item: any) => ({
             date: item.date,
             description: item.description,
             debit: item.debit ? parseFloat(item.debit) : null,
             credit: item.credit ? parseFloat(item.credit) : null,
-            balance: parseFloat(item.balance),
         }));
-        setLedgerEntries(entries);
+        setFetchedEntries(entries);
 
     } catch (e: any) {
         console.error("Failed to fetch ledger entries:", e);
         setError(`Failed to load data: ${e.message}. Please check the API script and server logs.`);
-        setLedgerEntries([]);
+        setFetchedEntries([]);
     } finally {
         setIsLoading(false);
     }
   }, [selectedAccount, dateRange]);
 
+  const { entriesWithBalance, endingBalance } = useMemo(() => {
+    const startBalance = parseCurrency(openingBalance);
+    let currentBalance = startBalance;
+    
+    const entries = fetchedEntries.map(entry => {
+        const debit = entry.debit || 0;
+        const credit = entry.credit || 0;
+        currentBalance = currentBalance + debit - credit;
+        return { ...entry, balance: currentBalance };
+    });
 
-  const endingBalance = ledgerEntries.length > 0 ? ledgerEntries[ledgerEntries.length - 1].balance : 0;
+    return {
+        entriesWithBalance: entries,
+        endingBalance: currentBalance,
+    };
+  }, [fetchedEntries, openingBalance]);
+
   const selectedAccountName = chartOfAccounts.find(acc => acc.code === selectedAccount)?.name || '';
 
   const formatDateSafe = (dateString: string | undefined | null) => {
@@ -188,8 +208,8 @@ const GeneralLedgerPage = () => {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div className="flex flex-col md:flex-row gap-4 mb-6 p-4 border rounded-lg items-end bg-muted/20">
-                    <div className="flex-1 space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 border rounded-lg items-end bg-muted/20">
+                    <div className="md:col-span-2 space-y-2">
                         <label htmlFor="account-select" className="font-semibold text-sm">Account</label>
                         <Select value={selectedAccount} onValueChange={setSelectedAccount}>
                             <SelectTrigger id="account-select">
@@ -204,12 +224,22 @@ const GeneralLedgerPage = () => {
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="flex-1 space-y-2">
+                    <div className="space-y-2">
                          <label htmlFor="date-range" className="font-semibold text-sm">Date Range</label>
                          <DateRangePicker date={dateRange} onDateChange={setDateRange} id="date-range"/>
                     </div>
-                    <div className="self-end">
-                        <Button onClick={fetchLedgerEntries} disabled={isLoading}>
+                     <div className="space-y-2">
+                         <label htmlFor="opening-balance" className="font-semibold text-sm">Opening Balance</label>
+                         <Input
+                            id="opening-balance"
+                            type="number"
+                            placeholder="0.00"
+                            value={openingBalance}
+                            onChange={(e) => setOpeningBalance(e.target.value)}
+                         />
+                    </div>
+                    <div className="md:col-start-4 self-end">
+                        <Button onClick={fetchLedgerEntries} disabled={isLoading} className="w-full">
                             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                             View Ledger
                         </Button>
@@ -234,7 +264,7 @@ const GeneralLedgerPage = () => {
                                 <p className="font-semibold">Error</p>
                                 <p>{error}</p>
                             </div>
-                        ) : ledgerEntries.length > 0 ? (
+                        ) : (
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -246,7 +276,14 @@ const GeneralLedgerPage = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {ledgerEntries.map((entry, index) => (
+                                <TableRow>
+                                    <TableCell>{dateRange?.from ? formatDateSafe(dateRange.from.toISOString()) : '-'}</TableCell>
+                                    <TableCell className="font-semibold">Opening Balance</TableCell>
+                                    <TableCell></TableCell>
+                                    <TableCell></TableCell>
+                                    <TableCell className="text-right font-mono font-semibold">{formatCurrency(parseCurrency(openingBalance))}</TableCell>
+                                </TableRow>
+                                {entriesWithBalance.map((entry, index) => (
                                     <TableRow key={index}>
                                         <TableCell>{formatDateSafe(entry.date)}</TableCell>
                                         <TableCell>{entry.description}</TableCell>
@@ -263,9 +300,10 @@ const GeneralLedgerPage = () => {
                                 </TableRow>
                             </TableFooter>
                         </Table>
-                        ) : (
+                        )}
+                         { !isLoading && !error && fetchedEntries.length === 0 && (
                              <div className="flex justify-center items-center h-40 text-muted-foreground">
-                                <p>No transactions for the selected period.</p>
+                                <p>No transactions found for the selected criteria.</p>
                             </div>
                         )}
                     </CardContent>
@@ -278,3 +316,5 @@ const GeneralLedgerPage = () => {
 };
 
 export default GeneralLedgerPage;
+
+    
