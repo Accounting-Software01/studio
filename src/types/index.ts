@@ -33,8 +33,10 @@ export interface Invoice {
   companyDetails: CompanyDetails;
   customer: Customer;
   items: InvoiceItem[];
+  subTotal: number;
+  vatAmount?: number;
   totalAmount: number;
+  previousBalance?: number;
+  newBalance?: number;
   narration?: string | null;
 }
-
-    

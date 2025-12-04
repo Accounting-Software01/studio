@@ -77,8 +77,12 @@ const InvoicePage = () => {
                     { id: 2, productName: 'Viva Detergent 170g', baseQty: { actual: 2500, billed: 2500 }, altQty: '65,000 Pcs', rate: 7950.00, per: 'Ctn', amount: 19875000.00 },
                     { id: 3, productName: 'Viva Detergent 800g', baseQty: { actual: 500, billed: 500 }, altQty: '3,500 Pcs', rate: 9850.00, per: 'Ctn', amount: 4925000.00 },
                 ],
-                totalAmount: 36050000.00,
-                narration: '',
+                subTotal: 36050000.00,
+                vatAmount: 2703750.00, // 7.5% of subTotal
+                totalAmount: 38753750.00, // subTotal + vatAmount
+                previousBalance: 1234567.89,
+                newBalance: 39988317.89, // totalAmount + previousBalance
+                narration: 'Being payment for the supply of detergents.',
             };
             setInvoice(mockInvoice);
             setIsLoading(false);
@@ -284,15 +288,34 @@ const InvoicePage = () => {
                         </tbody>
                         <tfoot>
                             <tr className="font-bold">
-                                <td colSpan={2} className="text-right">Total</td>
+                                <td colSpan={2} className="text-right border-0"></td>
                                 <td className="text-center">{totals.baseQtyActual}</td>
                                 <td className="text-center">{totals.baseQtyBilled}</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td colSpan={4} className="text-right">Sub Total</td>
+                                <td className="text-right">{formatCurrency(invoice.subTotal)}</td>
+                            </tr>
+                             {invoice.vatAmount && (
+                                <tr className="font-semibold">
+                                    <td colSpan={8} className="text-right">Add: VAT @ 7.5%</td>
+                                    <td className="text-right">{formatCurrency(invoice.vatAmount)}</td>
+                                </tr>
+                            )}
+                            <tr className="font-bold text-base">
+                                <td colSpan={8} className="text-right">GRAND TOTAL</td>
                                 <td className="text-right">{formatCurrency(invoice.totalAmount)}</td>
                             </tr>
+                             {invoice.previousBalance && (
+                                <tr className="font-semibold">
+                                    <td colSpan={8} className="text-right">Previous Balance</td>
+                                    <td className="text-right">{formatCurrency(invoice.previousBalance)}</td>
+                                </tr>
+                            )}
+                             {invoice.newBalance && (
+                                <tr className="font-bold text-base">
+                                    <td colSpan={8} className="text-right">New Balance</td>
+                                    <td className="text-right">{formatCurrency(invoice.newBalance)}</td>
+                                </tr>
+                            )}
                         </tfoot>
                     </table>
 
@@ -302,7 +325,7 @@ const InvoicePage = () => {
                     <div>
                         <p>
                             <span className="font-semibold">Amount In Words:</span>{' '}
-                            {convertAmountToWords(invoice.totalAmount)}
+                            {convertAmountToWords(invoice.newBalance || invoice.totalAmount)}
                         </p>
                     </div>
 
@@ -344,5 +367,3 @@ const InvoicePage = () => {
 };
 
 export default InvoicePage;
-
-    
