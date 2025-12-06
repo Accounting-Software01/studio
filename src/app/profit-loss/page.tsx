@@ -87,10 +87,8 @@ const ProfitLossPage = () => {
             const data: BackendBalance[] = await response.json();
 
             if (Array.isArray(data)) {
-                 // Process data on the frontend
                 const revenue: ReportSection = { title: 'Revenue', accounts: [], total: 0 };
                 const expenses: ReportSection = { title: 'Operating Expenses', accounts: [], total: 0 };
-                // Assuming no separate Cost of Sales accounts for now
                 const costOfSales: ReportSection = { title: 'Cost of Sales', accounts: [], total: 0 };
 
 
@@ -99,11 +97,11 @@ const ProfitLossPage = () => {
                     if (!account) return;
 
                     if (account.type === 'Revenue') {
-                        revenue.accounts.push({ name: account.name, amount: item.balance });
-                        revenue.total += item.balance;
+                        const amount = item.balance; // Revenue has a credit balance, so it's positive from the backend (credit - debit)
+                        revenue.accounts.push({ name: account.name, amount: amount });
+                        revenue.total += amount;
                     } else if (account.type === 'Expense') {
-                        // Expenses have debit balances (negative in credit-debit calculation), so we flip sign for reporting
-                        const amount = -item.balance;
+                        const amount = -item.balance; // Expenses have a debit balance, so backend value is negative. Flip sign for reporting.
                         expenses.accounts.push({ name: account.name, amount: amount });
                         expenses.total += amount;
                     }
