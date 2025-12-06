@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,11 @@ interface TrialBalanceEntry {
     accountName: string;
     debit: number | null;
     credit: number | null;
+}
+
+interface BackendBalance {
+    accountId: string;
+    balance: number;
 }
 
 const formatCurrency = (amount: number | null | undefined) => {
@@ -63,13 +68,42 @@ const TrialBalancePage = () => {
                 const errorText = await response.text();
                 throw new Error(`HTTP error! status: ${response.status}; ${errorText}`);
             }
-            const data = await response.json();
-            if (data.error) {
-                throw new Error(data.error);
+            const data: BackendBalance[] = await response.json();
+
+            if (Array.isArray(data)) {
+                 const formattedData = data.map(backendEntry => {
+                    const account = chartOfAccounts.find(acc => acc.code === backendEntry.accountId);
+                    if (!account) return null; // Skip if account not found in frontend COA
+
+                    const balance = backendEntry.balance;
+                    let debit: number | null = null;
+                    let credit: number | null = null;
+
+                    // For Asset and Expense accounts, a positive balance is a Debit.
+                    if (['Asset', 'Expense'].includes(account.type)) {
+                        if (balance > 0) debit = balance;
+                        else credit = -balance;
+                    } 
+                    // For Liability, Equity, and Revenue accounts, a negative balance is a Debit
+                    // and a positive balance is a Credit.
+                    else {
+                        if (balance < 0) debit = -balance;
+                        else credit = balance;
+                    }
+
+                    return {
+                        accountId: account.code,
+                        accountName: account.name,
+                        debit,
+                        credit,
+                    };
+                }).filter((entry): entry is TrialBalanceEntry => entry !== null && (entry.debit !== 0 || entry.credit !== 0));
+
+                setReportData(formattedData);
+            } else {
+                 throw new Error("Invalid data format received from server.");
             }
-            // Filter out entries where both debit and credit are null or zero
-            const filteredData = data.filter((entry: TrialBalanceEntry) => (entry.debit || 0) > 0 || (entry.credit || 0) > 0);
-            setReportData(filteredData);
+
         } catch (e: any) {
             setError(`Failed to load data: ${e.message}`);
             setReportData([]);
@@ -211,5 +245,3 @@ const TrialBalancePage = () => {
 };
 
 export default TrialBalancePage;
-
-    
