@@ -43,9 +43,9 @@ const formatCurrency = (amount: number | null | undefined) => {
     const formatted = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-    }).format(amount);
+    }).format(Math.abs(amount));
     
-    return amount < 0 ? `(${formatted.substring(1)})` : formatted;
+    return amount < 0 ? `(${formatted})` : formatted;
 };
 
 const CashFlowPage = () => {
@@ -97,8 +97,8 @@ const CashFlowPage = () => {
             <TableRow className="font-semibold bg-muted/30">
                 <TableCell colSpan={2}>{section.title}</TableCell>
             </TableRow>
-            {section.items.map(item => (
-                <TableRow key={item.description}>
+            {section.items.map((item, index) => (
+                <TableRow key={index}>
                     <TableCell className="pl-8">{item.description}</TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(item.amount)}</TableCell>
                 </TableRow>
@@ -150,6 +150,11 @@ const CashFlowPage = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
+                                <TableRow>
+                                    <TableCell className="font-semibold">Cash at Beginning of Period</TableCell>
+                                    <TableCell className="text-right font-bold font-mono">{formatCurrency(reportData.openingBalance)}</TableCell>
+                                </TableRow>
+
                                 {renderSection(reportData.operating)}
                                 <TableRow><TableCell colSpan={2}>&nbsp;</TableCell></TableRow>
                                 {renderSection(reportData.investing)}
@@ -160,10 +165,7 @@ const CashFlowPage = () => {
                                     <TableCell>Net Increase/Decrease in Cash</TableCell>
                                     <TableCell className="text-right font-mono">{formatCurrency(reportData.netCashFlow)}</TableCell>
                                 </TableRow>
-                                <TableRow className="font-semibold">
-                                    <TableCell>Cash at Beginning of Period</TableCell>
-                                    <TableCell className="text-right font-mono">{formatCurrency(reportData.openingBalance)}</TableCell>
-                                </TableRow>
+                                
                                 <TableRow className="font-bold text-lg bg-primary/10">
                                     <TableCell>Cash at End of Period</TableCell>
                                     <TableCell className="text-right font-mono">{formatCurrency(reportData.closingBalance)}</TableCell>
