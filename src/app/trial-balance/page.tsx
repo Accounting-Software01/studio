@@ -60,14 +60,16 @@ const TrialBalancePage = () => {
         try {
             const response = await fetch(url.toString());
             if (!response.ok) {
-                const errorJson = await response.json().catch(() => ({}));
-                throw new Error(errorJson.error || `HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}; ${errorText}`);
             }
             const data = await response.json();
             if (data.error) {
                 throw new Error(data.error);
             }
-            setReportData(data);
+            // Filter out entries where both debit and credit are null or zero
+            const filteredData = data.filter((entry: TrialBalanceEntry) => (entry.debit || 0) > 0 || (entry.credit || 0) > 0);
+            setReportData(filteredData);
         } catch (e: any) {
             setError(`Failed to load data: ${e.message}`);
             setReportData([]);
@@ -209,3 +211,5 @@ const TrialBalancePage = () => {
 };
 
 export default TrialBalancePage;
+
+    
