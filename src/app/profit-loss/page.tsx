@@ -16,10 +16,16 @@ import {
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { chartOfAccounts, Account } from '@/lib/chart-of-accounts';
+
+interface ReportAccount {
+    name: string;
+    amount: number;
+}
 
 interface ReportSection {
     title: string;
-    accounts: { name: string; amount: number }[];
+    accounts: ReportAccount[];
     total: number;
 }
 
@@ -29,6 +35,11 @@ interface ProfitLossData {
     expenses: ReportSection;
     grossProfit: number;
     netProfit: number;
+}
+
+interface BackendBalance {
+    accountId: string;
+    balance: number;
 }
 
 const formatCurrency = (amount: number | null | undefined) => {
@@ -58,6 +69,7 @@ const ProfitLossPage = () => {
 
         setIsLoading(true);
         setError(null);
+        setReportData(null);
         
         const fromDate = format(dateRange.from, 'yyyy-MM-dd');
         const toDate = format(dateRange.to, 'yyyy-MM-dd');
@@ -72,11 +84,45 @@ const ProfitLossPage = () => {
                 const errorJson = await response.json().catch(() => ({}));
                 throw new Error(errorJson.error || `HTTP error! status: ${response.status}`);
             }
-            const data = await response.json();
-            if (data.error) {
-                throw new Error(data.error);
+            const data: BackendBalance[] = await response.json();
+
+            if (Array.isArray(data)) {
+                 // Process data on the frontend
+                const revenue: ReportSection = { title: 'Revenue', accounts: [], total: 0 };
+                const expenses: ReportSection = { title: 'Operating Expenses', accounts: [], total: 0 };
+                // Assuming no separate Cost of Sales accounts for now
+                const costOfSales: ReportSection = { title: 'Cost of Sales', accounts: [], total: 0 };
+
+
+                data.forEach(item => {
+                    const account = chartOfAccounts.find(acc => acc.code === item.accountId);
+                    if (!account) return;
+
+                    if (account.type === 'Revenue') {
+                        revenue.accounts.push({ name: account.name, amount: item.balance });
+                        revenue.total += item.balance;
+                    } else if (account.type === 'Expense') {
+                        // Expenses have debit balances (negative in credit-debit calculation), so we flip sign for reporting
+                        const amount = -item.balance;
+                        expenses.accounts.push({ name: account.name, amount: amount });
+                        expenses.total += amount;
+                    }
+                });
+
+                const grossProfit = revenue.total - costOfSales.total;
+                const netProfit = grossProfit - expenses.total;
+
+                setReportData({
+                    revenue,
+                    costOfSales,
+                    expenses,
+                    grossProfit,
+                    netProfit
+                });
+
+            } else {
+                 throw new Error("Invalid data format received from server.");
             }
-            setReportData(data);
         } catch (e: any) {
             setError(`Failed to load data: ${e.message}`);
             setReportData(null);
