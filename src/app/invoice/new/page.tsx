@@ -14,7 +14,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableFooter
 } from "@/components/ui/table";
 import { PlusCircle, Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -58,7 +57,7 @@ const NewInvoicePage = () => {
     ]);
     const [isLoading, setIsLoading] = useState(false);
 
-    const customerAccounts = useMemo(() => chartOfAccounts.filter(acc => acc.type === 'Asset' && acc.name.includes('Receivable')), []);
+    const customerAccounts = useMemo(() => chartOfAccounts.filter(acc => acc.type === 'Asset' && acc.code.startsWith('1012')), []);
     const productAccounts = useMemo(() => chartOfAccounts.filter(acc => acc.type === 'Revenue'), []);
 
 
@@ -86,9 +85,9 @@ const NewInvoicePage = () => {
                      updatedLine.productName = product ? product.name : '';
                  }
                  if(field === 'quantity' || field === 'rate') {
-                     const quantity = field === 'quantity' ? (typeof value === 'number' ? value : parseInt(value, 10)) : updatedLine.quantity;
+                     const quantity = field === 'quantity' ? (typeof value === 'number' ? value : parseInt(value as string, 10)) : updatedLine.quantity;
                      const rate = field === 'rate' ? (typeof value === 'number' ? value : parseCurrency(value as string)) : updatedLine.rate;
-                     updatedLine.total = (quantity || 0) * (rate || 0);
+                     updatedLine.total = (quantity || 1) * (rate || 0);
                  }
                  return updatedLine;
             }
@@ -99,7 +98,7 @@ const NewInvoicePage = () => {
 
     const { subTotal, vatAmount, totalAmount } = useMemo(() => {
         const sub = lines.reduce((acc, line) => acc + line.total, 0);
-        const vat = sub * 0.075; // Assuming a 7.5% VAT rate
+        const vat = sub * 0.075; // Hardcoded 7.5% VAT rate
         const total = sub + vat;
         return { subTotal: sub, vatAmount: vat, totalAmount: total };
     }, [lines]);
@@ -109,8 +108,8 @@ const NewInvoicePage = () => {
             toast({ variant: 'destructive', title: 'Missing Information', description: 'Please select an invoice date and customer.' });
             return;
         }
-        if (lines.some(line => !line.productId || line.quantity <= 0 || line.rate <= 0)) {
-            toast({ variant: 'destructive', title: 'Incomplete Items', description: 'Please ensure all invoice lines have a product, quantity, and rate.' });
+        if (lines.some(line => !line.productId || line.rate <= 0)) {
+            toast({ variant: 'destructive', title: 'Incomplete Items', description: 'Please ensure all invoice lines have a product and a valid rate.' });
             return;
         }
         
@@ -122,8 +121,10 @@ const NewInvoicePage = () => {
             issueDate: format(invoiceDate, 'yyyy-MM-dd'),
             customerId: customerId,
             customerName: customer?.name,
+            subTotal: subTotal,
+            vatAmount: vatAmount,
             totalAmount: totalAmount,
-            // You can expand this payload to include all invoice details if you create an 'invoices' table
+            lines: lines.map(l => ({ accountId: l.productId, amount: l.total })) // Pass line items for more detailed journal
         };
 
         try {
@@ -135,7 +136,7 @@ const NewInvoicePage = () => {
             
             const result = await response.json();
 
-            if (!response.ok) {
+            if (!response.ok || !result.success) {
                 throw new Error(result.error || `Server responded with status ${response.status}`);
             }
 
@@ -143,6 +144,7 @@ const NewInvoicePage = () => {
                 title: 'Invoice Posted!',
                 description: `Journal Voucher #${result.journalVoucherId} has been created.`,
             });
+            // Redirect to the new dynamic invoice page
             router.push(`/invoice/${result.invoiceId}`);
 
         } catch (error: any) {
@@ -221,6 +223,7 @@ const NewInvoicePage = () => {
                                                 type="number"
                                                 className="text-right"
                                                 value={line.quantity}
+                                                min="1"
                                                 onChange={(e) => handleLineChange(line.id, 'quantity', parseInt(e.target.value, 10))}
                                             />
                                         </TableCell>

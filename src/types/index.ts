@@ -1,7 +1,7 @@
 
-
 export interface InvoiceItem {
   id: string | number;
+  productId?: string;
   productName: string;
   quantity: number;
   unitPrice: number;
@@ -29,10 +29,10 @@ export interface Invoice {
   issueDate: Date;
   dueDate: Date;
   status: 'Paid' | 'Unpaid' | 'Overdue';
-  companyDetails: CompanyDetails;
+  companyDetails?: CompanyDetails;
   customerName: string;
-  customerAddress: string;
-  customerEmail: string;
+  customerAddress?: string;
+  customerEmail?: string;
   customerId: string;
   items: InvoiceItem[];
   subTotal: number;
