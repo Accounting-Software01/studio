@@ -2,11 +2,33 @@
 'use client';
 import Link from 'next/link';
 import { Library, ArrowLeft } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
+
+// This is a placeholder for the actual useUser hook from Firebase
+// We will replace this with the real implementation later.
+const useUser = () => {
+    const [user, setUser] = useState<{ uid: string } | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        // Simulate checking for a user session.
+        // In a real app, this would be a call to Firebase Auth.
+        const session = null; // Set to a mock user object to test authenticated state
+        setTimeout(() => {
+            // setUser(session || { uid: 'mock-user' }); // Uncomment to test with a logged-in user
+            setUser(session); // Default to logged-out state
+            setIsLoading(false);
+        }, 1000);
+    }, []);
+
+    return { user, isLoading };
+};
+
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -16,8 +38,15 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, title, description }: AppLayoutProps) {
     const router = useRouter();
+    const { user, isLoading } = useUser();
     const [isMaximized, setIsMaximized] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
+
+    useEffect(() => {
+        if (!isLoading && !user) {
+            router.push('/login');
+        }
+    }, [isLoading, user, router]);
 
     const handleClose = () => {
         setIsClosing(true);
@@ -26,9 +55,19 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
         }, 300); // Match animation duration
     };
 
+
+
     const handleMaximize = () => {
         setIsMaximized(!isMaximized);
     };
+    
+    if (isLoading || !user) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
         <div className={cn(
