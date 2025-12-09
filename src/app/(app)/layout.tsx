@@ -1,15 +1,15 @@
 'use client';
 import Link from 'next/link';
-import { Library, LogOut } from 'lucide-react';
+import { Library, LogOut, BookOpen, Scale, FileBarChart2, Landmark, ArrowRightLeft, Users, UserSquare, LayoutDashboard, FilePlus, BookPlus } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 import { getCurrentUser, logout } from '@/lib/auth';
-import { Sidebar } from './Sidebar';
-import { ScrollArea } from './ui/scroll-area';
+import { Sidebar } from '@/components/Sidebar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const useUser = () => {
     const [user, setUser] = useState<{ uid: string } | null>(null);
@@ -27,15 +27,27 @@ const useUser = () => {
     return { user, isLoading };
 };
 
+const navItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/payment-voucher/new', label: 'New Payment', icon: FilePlus },
+    { href: '/journal', label: 'Journal Entry', icon: BookPlus },
+    { href: '/ledger', label: 'General Ledger', icon: BookOpen },
+    { href: '/trial-balance', label: 'Trial Balance', icon: Scale },
+    { href: '/profit-loss', label: 'Profit & Loss', icon: FileBarChart2 },
+    { href: '/balance-sheet', label: 'Balance Sheet', icon: Landmark },
+    { href: '/cash-flow', label: 'Cash Flow', icon: ArrowRightLeft },
+    { href: '/customers', label: 'Customers', icon: UserSquare },
+    { href: '/suppliers', label: 'Suppliers', icon: Users },
+];
 
-interface AppLayoutProps {
+
+export default function AppLayout({
+    children,
+}: {
     children: React.ReactNode;
-    title: string;
-    description: string;
-}
-
-export function AppLayout({ children, title, description }: AppLayoutProps) {
+}) {
     const router = useRouter();
+    const pathname = usePathname();
     const { user, isLoading } = useUser();
 
     useEffect(() => {
@@ -56,11 +68,15 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
             </div>
         );
     }
+    
+    const currentNavItem = navItems.find(item => item.href === pathname);
+    const title = currentNavItem?.label || 'ClearBooks';
+
 
     return (
-        <>
+        <div className="relative z-10 flex min-h-screen p-4">
             <Sidebar />
-            <main className="flex-1 flex flex-col p-4 animate-zoom-in-fade">
+            <main className="flex-1 flex flex-col pl-4">
                 <Card className="w-full flex flex-col flex-grow shadow-2xl bg-card/80 backdrop-blur-xl">
                     <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-white/20">
                         <div className="flex items-center gap-2">
@@ -70,7 +86,7 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
                                 <button className="h-3 w-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"></button>
                            </div>
                             <div className="flex items-center gap-2 ml-4">
-                                <Library className="h-5 w-5 text-primary" />
+                                {currentNavItem?.icon && <currentNavItem.icon className="h-5 w-5 text-primary" />}
                                 <h1 className="text-base font-semibold">{title}</h1>
                             </div>
                         </div>
@@ -81,12 +97,11 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
                     </CardHeader>
                     <ScrollArea className="flex-grow">
                          <CardContent className="p-6">
-                            <p className="text-muted-foreground mb-6">{description}</p>
-                            <div>{children}</div>
+                            {children}
                         </CardContent>
                     </ScrollArea>
                 </Card>
             </main>
-        </>
+        </div>
     );
 }
