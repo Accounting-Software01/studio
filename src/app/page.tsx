@@ -4,7 +4,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Card, CardDescription, CardContent, CardTitle } from "@/components/ui/card";
-import { FilePlus, BookPlus, BookOpen, Scale, FileBarChart2, Landmark, ArrowRightLeft, Library } from "lucide-react";
+import { FilePlus, BookPlus, BookOpen, Scale, FileBarChart2, Landmark, ArrowRightLeft, Library, Users, UserSquare } from "lucide-react";
 
 const navItems = [
     {
@@ -48,6 +48,18 @@ const navItems = [
         title: 'Cash Flow Statement',
         description: 'Track the movement of cash in and out of the business.',
         icon: <ArrowRightLeft className="w-10 h-10 text-primary" />,
+    },
+    {
+        href: '/suppliers',
+        title: 'Suppliers',
+        description: 'Manage your supplier profiles and balances.',
+        icon: <Users className="w-10 h-10 text-primary" />,
+    },
+    {
+        href: '/customers',
+        title: 'Customers',
+        description: 'Manage your customer profiles and receivables.',
+        icon: <UserSquare className="w-10 h-10 text-primary" />,
     }
 ];
 
