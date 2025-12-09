@@ -69,10 +69,10 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
             <Sidebar />
             <div className="flex-1 p-4">
                 <div className={cn(
-                    "w-full h-full transition-all duration-500 ease-in-out",
+                    "w-full transition-all duration-500 ease-in-out",
                     isClosing ? "animate-zoom-out-fade" : "animate-zoom-in-fade"
                 )}>
-                    <Card className="w-full h-full flex flex-col transition-all duration-500 ease-in-out shadow-2xl bg-card/80 backdrop-blur-xl">
+                    <Card className="w-full flex flex-col transition-all duration-500 ease-in-out shadow-2xl bg-card/80 backdrop-blur-xl">
                         <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-white/20">
                             <div className="flex items-center gap-2">
                                <div className="flex items-center gap-1.5">
