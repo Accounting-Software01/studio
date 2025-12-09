@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, BookPlus, Scale, FileBarChart2, Landmark, ArrowRightLeft, Library, FilePlus, ShoppingCart, TestTube, FileText } from "lucide-react";
+import { BookOpen, BookPlus, Scale, FileBarChart2, Landmark, ArrowRightLeft, Library, FilePlus } from "lucide-react";
 import Link from "next/link";
 
 const reports = [
@@ -51,14 +51,14 @@ const reports = [
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 sm:p-8">
-      <div className="w-full max-w-4xl">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-muted/30 p-4 sm:p-8">
+      <div className="w-full max-w-5xl">
         <div className="text-center mb-12">
-            <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
+            <div className="inline-block p-4 bg-white rounded-full mb-4 shadow-sm">
                 <Library className="h-12 w-12 text-primary" />
             </div>
-            <h1 className="text-4xl font-bold text-primary mb-2">
-                Accounting & Financial Reporting Hub
+            <h1 className="text-4xl font-bold tracking-tight text-primary mb-2">
+                Accounting & Financial Hub
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 A central place to manage accounting tasks and generate key financial reports for your business.
@@ -67,11 +67,11 @@ export default function Home() {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {reports.map((report) => (
-                 <Card key={report.href} className="hover:shadow-lg transition-shadow">
+                 <Card key={report.href} className="bg-background/80 backdrop-blur-sm hover:shadow-lg transition-shadow duration-300">
                     <CardHeader className="flex flex-row items-start gap-4">
-                        <div className="flex-shrink-0">{report.icon}</div>
+                        <div className="flex-shrink-0 bg-primary/10 text-primary p-3 rounded-full">{report.icon}</div>
                         <div className="flex-grow">
-                            <CardTitle>{report.title}</CardTitle>
+                            <CardTitle className="text-lg">{report.title}</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent>

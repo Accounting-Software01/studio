@@ -17,7 +17,7 @@ import { format } from 'date-fns';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, Cell } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
-
+import { AppHeader } from '@/components/AppHeader';
 
 interface CashFlowItem {
     description: string;
@@ -128,16 +128,14 @@ const CashFlowPage = () => {
       ] : [];
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-        <Card className="max-w-3xl mx-auto">
-            <CardHeader>
-                <CardTitle>Statement of Cash Flows</CardTitle>
-                <CardDescription>
-                    Track the movement of cash from operating, investing, and financing activities.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-lg items-end bg-muted/20">
+    <div>
+        <AppHeader 
+            title="Statement of Cash Flows"
+            description="Track the movement of cash from operating, investing, and financing activities."
+        />
+        <main className="container mx-auto p-4 md:p-8">
+            <div className="max-w-4xl mx-auto">
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-lg items-end bg-card">
                     <div className="md:col-span-2 space-y-2">
                         <label htmlFor="date-range" className="font-semibold text-sm">Date Range</label>
                         <DateRangePicker date={dateRange} onDateChange={setDateRange} id="date-range"/>
@@ -151,10 +149,10 @@ const CashFlowPage = () => {
                 {isLoading ? (
                     <div className="flex justify-center items-center h-60"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                 ) : error ? (
-                    <div className="flex flex-col justify-center items-center h-60 text-destructive"><AlertCircle className="h-8 w-8 mb-2" /><p>{error}</p></div>
+                    <Card className="flex flex-col justify-center items-center h-60 text-destructive bg-card"><AlertCircle className="h-8 w-8 mb-2" /><p>{error}</p></Card>
                 ) : reportData ? (
                     <div className="space-y-8">
-                        <Card>
+                        <Card className="bg-card">
                              <CardHeader>
                                 <CardTitle>Cash Movement</CardTitle>
                              </CardHeader>
@@ -174,7 +172,7 @@ const CashFlowPage = () => {
                              </CardContent>
                         </Card>
                         
-                        <div className="border rounded-lg p-4">
+                        <div className="border rounded-lg p-4 bg-card">
                             <h3 className="text-lg font-bold text-center">Statement of Cash Flows</h3>
                             <p className="text-center text-muted-foreground mb-6">
                                 For the period from {dateRange?.from ? format(dateRange.from, 'LLL dd, y') : ''} to {dateRange?.to ? format(dateRange.to, 'LLL dd, y') : ''}
@@ -213,10 +211,10 @@ const CashFlowPage = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex justify-center items-center h-60 text-muted-foreground"><p>Generate a report to see the cash flow statement.</p></div>
+                    <Card className="flex justify-center items-center h-60 text-muted-foreground bg-card"><p>Generate a report to see the cash flow statement.</p></Card>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+        </main>
     </div>
   );
 };

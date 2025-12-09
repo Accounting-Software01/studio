@@ -18,6 +18,7 @@ import { DateRange } from 'react-day-picker';
 import { format, parseISO, isValid } from 'date-fns';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { chartOfAccounts } from '@/lib/chart-of-accounts';
+import { AppHeader } from '@/components/AppHeader';
 
 interface LedgerEntry {
     date: string;
@@ -121,16 +122,14 @@ const GeneralLedgerPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-        <Card className="max-w-5xl mx-auto">
-            <CardHeader>
-                <CardTitle>General Ledger</CardTitle>
-                <CardDescription>
-                    View the detailed transaction history for any account. Opening balance is determined by the start of the financial year.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-lg items-end bg-muted/20">
+    <div>
+        <AppHeader 
+            title="General Ledger"
+            description="View the detailed transaction history for any account in the system."
+        />
+        <main className="container mx-auto p-4 md:p-8">
+            <div className="max-w-5xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-lg items-end bg-card">
                     <div className="md:col-span-2 space-y-2">
                         <label htmlFor="account-select" className="font-semibold text-sm">Account</label>
                         <Select value={selectedAccount} onValueChange={setSelectedAccount}>
@@ -158,7 +157,7 @@ const GeneralLedgerPage = () => {
                     </div>
                 </div>
 
-                <Card>
+                <Card className="bg-card">
                     <CardHeader>
                         <CardTitle>Account: {selectedAccount} - {selectedAccountName}</CardTitle>
                         <CardDescription>
@@ -221,8 +220,8 @@ const GeneralLedgerPage = () => {
                     </CardContent>
                 </Card>
 
-            </CardContent>
-        </Card>
+            </div>
+        </main>
     </div>
   );
 };

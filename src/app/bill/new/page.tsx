@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { chartOfAccounts } from '@/lib/chart-of-accounts';
 import { useRouter } from 'next/navigation';
+import { AppHeader } from '@/components/AppHeader';
 
 interface VoucherLine {
     id: number;
@@ -145,112 +146,118 @@ const NewPaymentVoucherPage = () => {
     };
 
     return (
-        <div className="container mx-auto p-4 md:p-8">
-            <Card className="max-w-4xl mx-auto">
-                <CardHeader>
-                    <CardTitle>New Payment Voucher</CardTitle>
-                    <CardDescription>
-                        Record a direct payment for expenses or assets. This will debit the selected expense/asset accounts and credit the selected cash/bank account.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="grid md:grid-cols-3 gap-6">
-                        <div className="space-y-2">
-                             <label className="font-semibold text-sm" htmlFor="payeeName">Payee Name</label>
-                             <Input 
-                                id="payeeName"
-                                placeholder="e.g., Electricity Company"
-                                value={payeeName}
-                                onChange={(e) => setPayeeName(e.target.value)}
-                             />
-                        </div>
-                        <div className="space-y-2">
-                             <label className="font-semibold text-sm">Voucher Date</label>
-                             <DatePicker date={voucherDate} onDateChange={setVoucherDate} />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="font-semibold text-sm">Payment From (Credit)</label>
-                            <Select value={paymentAccountId} onValueChange={setPaymentAccountId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select Cash/Bank Account..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {cashBankAccounts.map(account => (
-                                        <SelectItem key={account.code} value={account.code}>
-                                            {account.code} - {account.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-2/3">Expense / Asset Account (Debit)</TableHead>
-                                    <TableHead className="w-1/3 text-right">Amount</TableHead>
-                                    <TableHead className="w-[50px]"></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {lines.map((line) => (
-                                    <TableRow key={line.id}>
-                                        <TableCell>
-                                            <Select value={line.accountId} onValueChange={(value) => handleLineChange(line.id, 'accountId', value)}>
-                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select an account to debit..." />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                     {expenseAssetAccounts.map(account => (
-                                                        <SelectItem key={account.code} value={account.code}>
-                                                            {account.code} - {account.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Input
-                                                type="text"
-                                                className="text-right font-mono"
-                                                placeholder="0.00"
-                                                value={formatCurrencyForInput(line.amount)}
-                                                onChange={(e) => handleLineChange(line.id, 'amount', e.target.value)}
-                                                onFocus={(e) => e.target.select()}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveLine(line.id)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                         <Button variant="outline" size="sm" onClick={handleAddLine} className="mt-4">
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Line
-                        </Button>
-                    </div>
-
-                    <div className="flex justify-end">
-                        <div className="w-full max-w-xs space-y-2">
-                            <div className="flex justify-between font-bold text-lg border-t pt-2">
-                                <span>Total Amount:</span>
-                                <span className="font-mono">{formatCurrency(totalAmount)}</span>
+        <div>
+            <AppHeader 
+                title="New Payment Voucher"
+                description="Record a direct payment for expenses or assets."
+            />
+            <main className="container mx-auto p-4 md:p-8">
+                <Card className="max-w-4xl mx-auto">
+                    <CardHeader>
+                        <CardTitle>Payment Voucher Details</CardTitle>
+                        <CardDescription>
+                            This will debit the selected expense/asset accounts and credit the selected cash/bank account.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="grid md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                                <label className="font-semibold text-sm" htmlFor="payeeName">Payee Name</label>
+                                <Input 
+                                    id="payeeName"
+                                    placeholder="e.g., Electricity Company"
+                                    value={payeeName}
+                                    onChange={(e) => setPayeeName(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="font-semibold text-sm">Voucher Date</label>
+                                <DatePicker date={voucherDate} onDateChange={setVoucherDate} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="font-semibold text-sm">Payment From (Credit)</label>
+                                <Select value={paymentAccountId} onValueChange={setPaymentAccountId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Cash/Bank Account..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {cashBankAccounts.map(account => (
+                                            <SelectItem key={account.code} value={account.code}>
+                                                {account.code} - {account.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
-                    </div>
-                </CardContent>
-                <CardFooter className="justify-end">
-                    <Button size="lg" onClick={handlePostVoucher} disabled={isLoading || totalAmount <= 0}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Post Payment
-                    </Button>
-                </CardFooter>
-            </Card>
+                        
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-2/3">Expense / Asset Account (Debit)</TableHead>
+                                        <TableHead className="w-1/3 text-right">Amount</TableHead>
+                                        <TableHead className="w-[50px]"></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {lines.map((line) => (
+                                        <TableRow key={line.id}>
+                                            <TableCell>
+                                                <Select value={line.accountId} onValueChange={(value) => handleLineChange(line.id, 'accountId', value)}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select an account to debit..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {expenseAssetAccounts.map(account => (
+                                                            <SelectItem key={account.code} value={account.code}>
+                                                                {account.code} - {account.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Input
+                                                    type="text"
+                                                    className="text-right font-mono"
+                                                    placeholder="0.00"
+                                                    value={formatCurrencyForInput(line.amount)}
+                                                    onChange={(e) => handleLineChange(line.id, 'amount', e.target.value)}
+                                                    onFocus={(e) => e.target.select()}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="icon" onClick={() => handleRemoveLine(line.id)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            <Button variant="outline" size="sm" onClick={handleAddLine} className="mt-4">
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add Line
+                            </Button>
+                        </div>
+
+                        <div className="flex justify-end">
+                            <div className="w-full max-w-xs space-y-2">
+                                <div className="flex justify-between font-bold text-lg border-t pt-2">
+                                    <span>Total Amount:</span>
+                                    <span className="font-mono">{formatCurrency(totalAmount)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                    <CardFooter className="justify-end bg-muted/30 py-4 px-6 rounded-b-lg">
+                        <Button size="lg" onClick={handlePostVoucher} disabled={isLoading || totalAmount <= 0}>
+                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Post Payment
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </main>
         </div>
     );
 };

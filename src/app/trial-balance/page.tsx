@@ -18,6 +18,7 @@ import { Loader2, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react';
 import { chartOfAccounts, Account } from '@/lib/chart-of-accounts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { DateRange } from 'react-day-picker';
+import { AppHeader } from '@/components/AppHeader';
 
 interface BackendBalance {
     accountId: string;
@@ -112,21 +113,19 @@ const TrialBalancePage = () => {
     }, [reportData]);
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-        <Card className="max-w-4xl mx-auto">
-            <CardHeader>
-                <CardTitle>Trial Balance &amp; Chart of Accounts</CardTitle>
-                <CardDescription>
-                    View the chart of accounts or generate a trial balance to verify that total debits equal total credits for a period.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+    <div>
+        <AppHeader 
+            title="Trial Balance & Chart of Accounts"
+            description="Verify account balances and browse the complete chart of accounts."
+        />
+        <main className="container mx-auto p-4 md:p-8">
+            <div className="max-w-4xl mx-auto">
                 <Tabs defaultValue="trial-balance">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="trial-balance">Trial Balance</TabsTrigger>
                         <TabsTrigger value="chart-of-accounts">Chart of Accounts</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="trial-balance">
+                    <TabsContent value="trial-balance" className="mt-6">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Generate Trial Balance</CardTitle>
@@ -178,12 +177,12 @@ const TrialBalancePage = () => {
                                         </Table>
                                         <div className="mt-4 flex justify-end">
                                             {isBalanced ? (
-                                                <div className="flex items-center gap-2 text-green-600 bg-green-50 p-2 rounded-md">
+                                                <div className="flex items-center gap-2 text-green-600 bg-green-50 p-2 rounded-md border border-green-200">
                                                     <CheckCircle className="h-5 w-5" />
                                                     <span className="font-semibold">Balanced</span>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-2 rounded-md">
+                                                <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-2 rounded-md border border-amber-200">
                                                     <AlertTriangle className="h-5 w-5" />
                                                     <span className="font-semibold">Not Balanced</span>
                                                 </div>
@@ -196,7 +195,7 @@ const TrialBalancePage = () => {
                             </CardContent>
                         </Card>
                     </TabsContent>
-                     <TabsContent value="chart-of-accounts">
+                     <TabsContent value="chart-of-accounts" className="mt-6">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Chart of Accounts</CardTitle>
@@ -227,8 +226,8 @@ const TrialBalancePage = () => {
                         </Card>
                     </TabsContent>
                 </Tabs>
-            </CardContent>
-        </Card>
+            </div>
+        </main>
     </div>
   );
 };
