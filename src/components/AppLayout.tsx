@@ -28,11 +28,11 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
 
     return (
         <div className={cn(
-            "min-h-screen bg-background p-4 sm:p-6 lg:p-8 flex items-center justify-center transition-all duration-300",
+            "min-h-screen bg-background/80 backdrop-blur-sm p-4 sm:p-6 lg:p-8 flex items-center justify-center transition-all duration-300",
             isMaximized ? "p-0" : ""
         )}>
-            <div className={cn("w-full transition-all duration-500 ease-in-out", isMaximized ? "h-full" : "max-w-7xl")}>
-                <Card className={cn("overflow-hidden w-full h-full flex flex-col transition-all duration-500 ease-in-out", isMaximized ? "rounded-none" : "")}>
+            <div className={cn("w-full transition-all duration-500 ease-in-out", isMaximized ? "h-screen" : "max-w-6xl")}>
+                <Card className={cn("overflow-hidden w-full h-full flex flex-col transition-all duration-500 ease-in-out shadow-2xl", isMaximized ? "rounded-none" : "rounded-lg max-h-[90vh]")}>
                     <CardHeader className="flex flex-row items-center justify-between bg-muted/50 p-4 border-b">
                         <div className="flex items-center gap-2">
                            <div className="flex items-center gap-1.5">

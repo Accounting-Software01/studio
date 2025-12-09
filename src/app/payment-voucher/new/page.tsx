@@ -26,20 +26,6 @@ interface VoucherLine {
     amount: number;
 }
 
-const parseCurrency = (value: string): number => {
-    return parseFloat(value.replace(/,/g, '')) || 0;
-};
-
-const formatCurrencyForInput = (value: number | string): string => {
-    if (typeof value === 'string') {
-        value = parseFloat(value.replace(/,/g, ''));
-    }
-    if (isNaN(value) || value === 0) {
-        return '';
-    }
-    return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
-
 const NewPaymentVoucherPage = () => {
     const { toast } = useToast();
     const router = useRouter();
@@ -73,11 +59,11 @@ const NewPaymentVoucherPage = () => {
     const handleLineChange = (id: number, field: keyof VoucherLine, value: string | number) => {
         let newLines = lines.map(line => {
             if (line.id === id) {
-                const updatedLine = { ...line, [field]: value };
-                if (field === 'amount') {
-                    updatedLine.amount = typeof value === 'number' ? value : parseCurrency(value as string);
+                 if (field === 'amount') {
+                    const parsedValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
+                    return { ...line, amount: parsedValue };
                 }
-                return updatedLine;
+                return { ...line, [field]: value };
             }
             return line;
         });
@@ -216,10 +202,10 @@ const NewPaymentVoucherPage = () => {
                                         </TableCell>
                                         <TableCell>
                                             <Input
-                                                type="text"
+                                                type="number"
                                                 className="text-right font-mono"
                                                 placeholder="0.00"
-                                                value={formatCurrencyForInput(line.amount)}
+                                                value={line.amount || ''}
                                                 onChange={(e) => handleLineChange(line.id, 'amount', e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                             />

@@ -29,21 +29,6 @@ interface JournalEntryLine {
     credit: number;
 }
 
-const formatCurrencyForInput = (value: number | string): string => {
-    if (typeof value === 'string') {
-        value = parseFloat(value.replace(/,/g, ''));
-    }
-    if (isNaN(value) || value === 0) {
-        return '';
-    }
-    return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
-
-const parseCurrency = (value: string): number => {
-    return parseFloat(value.replace(/,/g, '')) || 0;
-};
-
-
 const JournalPage = () => {
     const { toast } = useToast();
     const [entryDate, setEntryDate] = useState<Date | undefined>(new Date());
@@ -73,11 +58,12 @@ const JournalPage = () => {
     const handleLineChange = (id: number, field: keyof JournalEntryLine, value: string | number) => {
         setLines(lines.map(line => {
             if (line.id === id) {
+                const parsedValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
                 if (field === 'debit') {
-                    return { ...line, debit: parseCurrency(value as string), credit: 0 };
+                    return { ...line, debit: parsedValue, credit: 0 };
                 }
                 if (field === 'credit') {
-                    return { ...line, credit: parseCurrency(value as string), debit: 0 };
+                    return { ...line, credit: parsedValue, debit: 0 };
                 }
                 return { ...line, [field]: value };
             }
@@ -236,20 +222,20 @@ const JournalPage = () => {
                                         </TableCell>
                                         <TableCell>
                                             <Input
-                                                type="text"
+                                                type="number"
                                                 className="text-right font-mono"
                                                 placeholder="0.00"
-                                                value={line.debit > 0 ? formatCurrencyForInput(line.debit) : ''}
+                                                value={line.debit || ''}
                                                 onChange={(e) => handleLineChange(line.id, 'debit', e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                             />
                                         </TableCell>
                                         <TableCell>
                                             <Input
-                                                type="text"
+                                                type="number"
                                                 className="text-right font-mono"
                                                 placeholder="0.00"
-                                                value={line.credit > 0 ? formatCurrencyForInput(line.credit) : ''}
+                                                value={line.credit || ''}
                                                 onChange={(e) => handleLineChange(line.id, 'credit', e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                             />
