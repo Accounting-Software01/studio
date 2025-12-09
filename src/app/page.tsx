@@ -4,7 +4,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { Card, CardDescription, CardContent, CardTitle } from "@/components/ui/card";
-import { FilePlus, BookPlus, BookOpen, Scale, FileBarChart2, Landmark, ArrowRightLeft, Library, Users, UserSquare } from "lucide-react";
+import { FilePlus, BookPlus, BookOpen, Scale, FileBarChart2, Landmark, ArrowRightLeft, Library, Users, UserSquare, LogIn } from "lucide-react";
+import { Button } from '@/components/ui/button';
 
 const navItems = [
     {
@@ -49,18 +50,6 @@ const navItems = [
         description: 'Track the movement of cash in and out of the business.',
         icon: <ArrowRightLeft className="w-10 h-10 text-primary" />,
     },
-    {
-        href: '/suppliers',
-        title: 'Suppliers',
-        description: 'Manage your supplier profiles and balances.',
-        icon: <Users className="w-10 h-10 text-primary" />,
-    },
-    {
-        href: '/customers',
-        title: 'Customers',
-        description: 'Manage your customer profiles and receivables.',
-        icon: <UserSquare className="w-10 h-10 text-primary" />,
-    }
 ];
 
 
@@ -76,6 +65,14 @@ export default function Home() {
             <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
                 A comprehensive system to record, analyze, and report on your financial transactions, ensuring accuracy and providing insights for business decisions.
             </p>
+            <div className="mt-8">
+              <Button asChild size="lg">
+                <Link href="/login">
+                  <LogIn className="mr-2" />
+                  Login to Your Account
+                </Link>
+              </Button>
+            </div>
         </div>
        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {navItems.map((item) => (
