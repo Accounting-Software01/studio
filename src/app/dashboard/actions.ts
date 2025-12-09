@@ -9,7 +9,7 @@ const API_BASE_URL = 'https://hariindustries.net/busa-api/database';
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'KES',
+      currency: 'NGN',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
