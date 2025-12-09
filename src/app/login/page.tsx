@@ -12,9 +12,38 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Library } from 'lucide-react';
+import { Library, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { login } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    try {
+      await login('test@example.com', 'password');
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome back!',
+      });
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background/80 backdrop-blur-sm p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-4xl animate-zoom-in-fade">
@@ -42,26 +71,30 @@ export default function LoginPage() {
                 </p>
               </div>
               <CardContent className="p-0">
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="name@example.com"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <div className="flex items-center">
-                      <Label htmlFor="password">Password</Label>
+                <form onSubmit={handleSubmit}>
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="name@example.com"
+                        required
+                        defaultValue="test@example.com"
+                      />
                     </div>
-                    <Input id="password" type="password" required />
+                    <div className="grid gap-2">
+                      <div className="flex items-center">
+                        <Label htmlFor="password">Password</Label>
+                      </div>
+                      <Input id="password" type="password" required defaultValue="password" />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Login
+                    </Button>
                   </div>
-                  <Button type="submit" className="w-full">
-                    Login
-                  </Button>
-                </div>
+                </form>
                 <div className="mt-4 text-center text-sm">
                   Don&apos;t have an account?{' '}
                   <Link href="/signup" className="underline">

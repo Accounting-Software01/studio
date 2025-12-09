@@ -1,29 +1,26 @@
 
 'use client';
 import Link from 'next/link';
-import { Library, ArrowLeft } from 'lucide-react';
+import { Library, LogOut } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import { getCurrentUser, logout } from '@/lib/auth';
 
-// This is a placeholder for the actual useUser hook from Firebase
-// We will replace this with the real implementation later.
 const useUser = () => {
     const [user, setUser] = useState<{ uid: string } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Simulate checking for a user session.
-        // In a real app, this would be a call to Firebase Auth.
-        const session = null; // Set to a mock user object to test authenticated state
-        setTimeout(() => {
-            // setUser(session || { uid: 'mock-user' }); // Uncomment to test with a logged-in user
-            setUser(session); // Default to logged-out state
+        const checkUser = async () => {
+            const currentUser = await getCurrentUser();
+            setUser(currentUser);
             setIsLoading(false);
-        }, 1000);
+        };
+        checkUser();
     }, []);
 
     return { user, isLoading };
@@ -55,7 +52,10 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
         }, 300); // Match animation duration
     };
 
-
+    const handleLogout = async () => {
+        await logout();
+        router.push('/login');
+    };
 
     const handleMaximize = () => {
         setIsMaximized(!isMaximized);
@@ -92,6 +92,10 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
                                 <h1 className="text-base font-semibold">{title}</h1>
                             </div>
                         </div>
+                         <Button variant="ghost" size="sm" onClick={handleLogout}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Logout
+                        </Button>
                     </CardHeader>
                     <CardContent className="p-6 flex-grow overflow-y-auto">
                         <p className="text-muted-foreground mb-6">{description}</p>

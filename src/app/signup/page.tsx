@@ -12,9 +12,38 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Library } from 'lucide-react';
+import { Library, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { signup } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SignupPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    try {
+      await signup('test@example.com', 'password');
+      toast({
+        title: 'Account Created',
+        description: "You're now logged in.",
+      });
+      router.push('/dashboard');
+    } catch (error: any) {
+       toast({
+        variant: 'destructive',
+        title: 'Signup Failed',
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background/80 backdrop-blur-sm p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-4xl animate-zoom-in-fade">
@@ -42,28 +71,31 @@ export default function SignupPage() {
                     </p>
                 </div>
                 <CardContent className="p-0">
-                    <div className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="full-name">Full Name</Label>
-                        <Input id="full-name" placeholder="John Doe" required />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                        id="email"
-                        type="email"
-                        placeholder="name@example.com"
-                        required
-                        />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input id="password" type="password" required />
-                    </div>
-                    <Button type="submit" className="w-full">
-                        Create Account
-                    </Button>
-                    </div>
+                    <form onSubmit={handleSubmit}>
+                        <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="full-name">Full Name</Label>
+                            <Input id="full-name" placeholder="John Doe" required />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                            id="email"
+                            type="email"
+                            placeholder="name@example.com"
+                            required
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input id="password" type="password" required />
+                        </div>
+                        <Button type="submit" className="w-full" disabled={isLoading}>
+                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Create Account
+                        </Button>
+                        </div>
+                    </form>
                     <div className="mt-4 text-center text-xs text-muted-foreground space-y-2">
                       <p>
                         By creating an account, you agree to the{' '}

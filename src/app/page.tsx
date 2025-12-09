@@ -1,23 +1,24 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { getCurrentUser } from '@/lib/auth';
 
-// This is a placeholder for the actual useUser hook from Firebase
-// We will replace this with the real implementation later.
+
 const useUser = () => {
     const [user, setUser] = useState<{ uid: string } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         // Simulate checking for a user session.
-        const session = null; // Set to a mock user object to test authenticated state
-        setTimeout(() => {
-            // setUser(session || { uid: 'mock-user' }); // Uncomment to test with a logged-in user
-            setUser(session); // Default to logged-out state
+        const checkUser = async () => {
+            const currentUser = await getCurrentUser();
+            setUser(currentUser);
             setIsLoading(false);
-        }, 500);
+        }
+        checkUser();
     }, []);
 
     return { user, isLoading };
