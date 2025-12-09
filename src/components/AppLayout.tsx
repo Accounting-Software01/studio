@@ -51,7 +51,7 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
     const handleClose = () => {
         setIsClosing(true);
         setTimeout(() => {
-            router.push('/');
+            router.push('/dashboard');
         }, 300); // Match animation duration
     };
 
