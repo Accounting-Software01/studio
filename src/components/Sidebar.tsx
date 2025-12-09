@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
 
 const navItems = [
-    { href: '/home', label: 'Home', icon: LayoutDashboard },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/payment-voucher/new', label: 'New Payment', icon: FilePlus },
     { href: '/journal', label: 'Journal Entry', icon: BookPlus },
     { href: '/ledger', label: 'General Ledger', icon: BookOpen },
@@ -39,19 +39,20 @@ export function Sidebar() {
                 <Library className="h-8 w-8 text-white" />
                 <h2 className="text-2xl font-bold text-white">ClearBooks</h2>
             </div>
-            <ScrollArea className="flex-grow px-4">
-                <nav className="py-4">
+            <ScrollArea className="flex-grow">
+                <nav className="py-4 px-4">
                     <ul className="space-y-2">
                         {navItems.map((item) => (
                             <li key={item.href}>
-                                <Link href={item.href} passHref>
-                                    <div className={cn(
+                                <Link 
+                                    href={item.href} 
+                                    className={cn(
                                         "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 text-gray-300 hover:bg-white/10 hover:text-white",
                                         pathname === item.href && "bg-primary/80 text-primary-foreground shadow-md"
-                                    )}>
-                                        <item.icon className="h-5 w-5" />
-                                        <span className="font-medium">{item.label}</span>
-                                    </div>
+                                    )}
+                                >
+                                    <item.icon className="h-5 w-5" />
+                                    <span className="font-medium">{item.label}</span>
                                 </Link>
                             </li>
                         ))}

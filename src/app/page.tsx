@@ -31,7 +31,7 @@ export default function RootPage() {
   useEffect(() => {
     if (!isLoading) {
       if (user) {
-        router.replace('/home');
+        router.replace('/dashboard');
       } else {
         router.replace('/login');
       }

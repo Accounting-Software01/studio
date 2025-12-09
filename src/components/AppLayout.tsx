@@ -37,20 +37,12 @@ interface AppLayoutProps {
 export function AppLayout({ children, title, description }: AppLayoutProps) {
     const router = useRouter();
     const { user, isLoading } = useUser();
-    const [isClosing, setIsClosing] = useState(false);
 
     useEffect(() => {
         if (!isLoading && !user) {
             router.push('/login');
         }
     }, [isLoading, user, router]);
-
-    const handleClose = () => {
-        setIsClosing(true);
-        setTimeout(() => {
-            router.push('/home');
-        }, 300); // Match animation duration
-    };
 
     const handleLogout = async () => {
         await logout();
@@ -68,38 +60,33 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
     return (
         <>
             <Sidebar />
-            <div className="flex-1 p-4 flex flex-col">
-                <div className={cn(
-                    "w-full transition-all duration-500 ease-in-out flex flex-col flex-grow",
-                    isClosing ? "animate-zoom-out-fade" : "animate-zoom-in-fade"
-                )}>
-                    <Card className="w-full flex flex-col flex-grow transition-all duration-500 ease-in-out shadow-2xl bg-card/80 backdrop-blur-xl">
-                        <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-white/20">
-                            <div className="flex items-center gap-2">
-                               <div className="flex items-center gap-1.5">
-                                    <button onClick={handleClose} className="h-3 w-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"></button>
-                                    <button className="h-3 w-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"></button>
-                                    <button className="h-3 w-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"></button>
-                               </div>
-                                <div className="flex items-center gap-2 ml-4">
-                                    <Library className="h-5 w-5 text-primary" />
-                                    <h1 className="text-base font-semibold">{title}</h1>
-                                </div>
+            <main className="flex-1 flex flex-col p-4 animate-zoom-in-fade">
+                <Card className="w-full flex flex-col flex-grow shadow-2xl bg-card/80 backdrop-blur-xl">
+                    <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-white/20">
+                        <div className="flex items-center gap-2">
+                           <div className="flex items-center gap-1.5">
+                                <Link href="/dashboard" className="h-3 w-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"></Link>
+                                <button className="h-3 w-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"></button>
+                                <button className="h-3 w-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"></button>
+                           </div>
+                            <div className="flex items-center gap-2 ml-4">
+                                <Library className="h-5 w-5 text-primary" />
+                                <h1 className="text-base font-semibold">{title}</h1>
                             </div>
-                             <Button variant="ghost" size="sm" onClick={handleLogout}>
-                                <LogOut className="mr-2 h-4 w-4" />
-                                Logout
-                            </Button>
-                        </CardHeader>
-                        <ScrollArea className="flex-grow">
-                             <CardContent className="p-6">
-                                <p className="text-muted-foreground mb-6">{description}</p>
-                                <main>{children}</main>
-                            </CardContent>
-                        </ScrollArea>
-                    </Card>
-                </div>
-            </div>
+                        </div>
+                         <Button variant="ghost" size="sm" onClick={handleLogout}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Logout
+                        </Button>
+                    </CardHeader>
+                    <ScrollArea className="flex-grow">
+                         <CardContent className="p-6">
+                            <p className="text-muted-foreground mb-6">{description}</p>
+                            <div>{children}</div>
+                        </CardContent>
+                    </ScrollArea>
+                </Card>
+            </main>
         </>
     );
 }
