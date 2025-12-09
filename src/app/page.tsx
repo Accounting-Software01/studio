@@ -98,7 +98,7 @@ export default function Home() {
                             </CardContent>
                         </Card>
                     ))
-                ) : (
+                ) : overviewData ? (
                     overviewCards.map((card) => (
                         <Card key={card.title}>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -110,7 +110,7 @@ export default function Home() {
                             </CardContent>
                         </Card>
                     ))
-                )}
+                ): null}
             </div>
           </TabsContent>
           <TabsContent value="activity">
