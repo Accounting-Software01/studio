@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2, AlertCircle } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -12,15 +12,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { chartOfAccounts } from '@/lib/chart-of-accounts';
 
-// Placeholder data - replace with API call
-const suppliers = [
-  { id: 'SUP001', name: 'Global Tech Imports', contactPerson: 'Jane Doe', email: 'jane.doe@globaltech.com', phone: '555-123-4567' },
-  { id: 'SUP002', name: 'Office Supply Co.', contactPerson: 'John Smith', email: 'john.smith@officesupply.com', phone: '555-987-6543' },
-  { id: 'SUP003', name: 'Industrial Materials Inc.', contactPerson: 'Peter Jones', email: 'peter.jones@industrial.com', phone: '555-555-5555' },
-];
+
+interface Supplier {
+  id: string;
+  name: string;
+}
 
 const SuppliersPage = () => {
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setIsLoading(true);
+        try {
+            // This is a simulation. In a real app, you would fetch from your backend API.
+            const supplierAccounts = chartOfAccounts
+                .filter(acc => acc.type === 'Liability' && acc.name.toLowerCase().includes('supplier'))
+                .map(acc => ({ id: acc.code, name: acc.name }));
+            
+            setSuppliers(supplierAccounts);
+        } catch (e: any) {
+            setError("Failed to load suppliers.");
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
   return (
     <>
       <p className="text-muted-foreground mb-6">Manage your list of suppliers and their contact information.</p>
@@ -38,28 +58,38 @@ const SuppliersPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Supplier ID</TableHead>
-                <TableHead>Supplier Name</TableHead>
-                <TableHead>Contact Person</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {suppliers.map((supplier) => (
-                <TableRow key={supplier.id}>
-                  <TableCell className="font-mono">{supplier.id}</TableCell>
-                  <TableCell className="font-medium">{supplier.name}</TableCell>
-                  <TableCell>{supplier.contactPerson}</TableCell>
-                  <TableCell>{supplier.email}</TableCell>
-                  <TableCell>{supplier.phone}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+            {isLoading ? (
+                <div className="flex justify-center items-center h-40">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+            ) : error ? (
+                <div className="flex flex-col justify-center items-center h-40 text-destructive">
+                    <AlertCircle className="h-8 w-8 mb-2" />
+                    <p>{error}</p>
+                </div>
+            ) : (
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Supplier ID</TableHead>
+                        <TableHead>Supplier Name</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {suppliers.map((supplier) => (
+                        <TableRow key={supplier.id}>
+                        <TableCell className="font-mono">{supplier.id}</TableCell>
+                        <TableCell className="font-medium">{supplier.name}</TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                </Table>
+            )}
+             { !isLoading && !error && suppliers.length === 0 && (
+                <div className="flex justify-center items-center h-40 text-muted-foreground">
+                    <p>No suppliers found in the chart of accounts.</p>
+                </div>
+            )}
         </CardContent>
       </Card>
     </>
@@ -67,3 +97,5 @@ const SuppliersPage = () => {
 };
 
 export default SuppliersPage;
+
+    

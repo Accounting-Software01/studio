@@ -13,11 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusCircle, Trash2, Loader2 } from 'lucide-react';
+import { PlusCircle, Trash2, Loader2, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { chartOfAccounts } from '@/lib/chart-of-accounts';
 import { useRouter } from 'next/navigation';
+import { PayeeDialog } from '@/components/PayeeDialog';
 
 interface VoucherLine {
     id: number;
@@ -35,6 +36,7 @@ const NewPaymentVoucherPage = () => {
         { id: 1, accountId: '', amount: 0 },
     ]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isPayeeDialogOpen, setIsPayeeDialogOpen] = useState(false);
 
     const expenseAssetAccounts = useMemo(() => chartOfAccounts.filter(acc => acc.type === 'Expense' || acc.type === 'Asset'), []);
     const cashBankAccounts = useMemo(() => chartOfAccounts.filter(acc => acc.type === 'Asset' && acc.code.startsWith('1011')), []);
@@ -131,6 +133,14 @@ const NewPaymentVoucherPage = () => {
 
     return (
         <>
+            <PayeeDialog 
+                open={isPayeeDialogOpen} 
+                onOpenChange={setIsPayeeDialogOpen}
+                onSelectPayee={(payee) => {
+                    setPayeeName(payee.name);
+                    setIsPayeeDialogOpen(false);
+                }}
+            />
             <p className="text-muted-foreground mb-6">Record a direct payment for expenses or assets.</p>
             <Card>
                 <CardHeader>
@@ -143,12 +153,17 @@ const NewPaymentVoucherPage = () => {
                     <div className="grid md:grid-cols-3 gap-6">
                         <div className="space-y-2">
                             <label className="font-semibold text-sm" htmlFor="payeeName">Payee Name</label>
-                            <Input 
-                                id="payeeName"
-                                placeholder="e.g., Electricity Company"
-                                value={payeeName}
-                                onChange={(e) => setPayeeName(e.target.value)}
-                            />
+                            <div className="flex gap-2">
+                                <Input 
+                                    id="payeeName"
+                                    placeholder="e.g., Electricity Company"
+                                    value={payeeName}
+                                    onChange={(e) => setPayeeName(e.target.value)}
+                                />
+                                <Button variant="outline" size="icon" onClick={() => setIsPayeeDialogOpen(true)}>
+                                    <UserPlus className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <label className="font-semibold text-sm">Voucher Date</label>
@@ -242,3 +257,5 @@ const NewPaymentVoucherPage = () => {
 };
 
 export default NewPaymentVoucherPage;
+
+    
