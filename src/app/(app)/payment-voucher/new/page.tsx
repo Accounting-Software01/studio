@@ -83,7 +83,7 @@ const NewPaymentVoucherPage = () => {
     };
 
     const handlePostVoucher = async () => {
-        if (!voucherDate || !payeeName || payeeName.trim() === '' || !paymentAccountId) {
+        if (!voucherDate || !payeeName?.trim() || !paymentAccountId) {
             toast({ variant: 'destructive', title: 'Missing Information', description: 'Please provide a date, payee name, and payment account.' });
             return;
         }
@@ -128,7 +128,10 @@ const NewPaymentVoucherPage = () => {
     };
     
     const formatCurrency = (amount: number) => {
-        return amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+         return new Intl.NumberFormat('en-NG', {
+            style: 'currency',
+            currency: 'NGN',
+        }).format(amount);
     };
 
     return (
