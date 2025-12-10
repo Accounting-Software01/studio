@@ -70,14 +70,14 @@ export default function AppLayout({
         );
     }
     
-    const currentNavItem = navItems.find(item => item.href === pathname);
+    const currentNavItem = navItems.find(item => pathname.startsWith(item.href));
     const title = currentNavItem?.label || 'ClearBooks';
 
 
     return (
         <div className="relative z-10 flex h-[90vh] w-full max-w-7xl mx-auto gap-4">
             <Sidebar />
-            <main className="flex-1 flex flex-col">
+            <main className="flex-1 flex flex-col h-full overflow-hidden">
                 <Card className="w-full flex flex-col flex-grow shadow-2xl bg-card/80 backdrop-blur-xl">
                     <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
                         <div className="flex items-center gap-2">
