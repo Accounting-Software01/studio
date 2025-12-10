@@ -34,10 +34,10 @@ export function Sidebar() {
     const pathname = usePathname();
 
     return (
-        <aside className="w-64 flex-shrink-0 rounded-2xl bg-black/10 dark:bg-white/5 backdrop-blur-lg border border-white/10 shadow-lg flex flex-col animate-zoom-in-fade">
+        <aside className="w-64 flex-shrink-0 rounded-2xl bg-primary/10 backdrop-blur-lg border border-white/10 shadow-lg flex flex-col">
             <div className="p-6 flex items-center justify-center gap-2 border-b border-white/10">
-                <Library className="h-8 w-8 text-white" />
-                <h2 className="text-2xl font-bold text-white">ClearBooks</h2>
+                <Library className="h-8 w-8 text-primary" />
+                <h2 className="text-2xl font-bold text-primary">ClearBooks</h2>
             </div>
             <ScrollArea className="flex-grow">
                 <nav className="py-4 px-4">
@@ -47,8 +47,8 @@ export function Sidebar() {
                                 <Link 
                                     href={item.href} 
                                     className={cn(
-                                        "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 text-gray-300 hover:bg-white/10 hover:text-white",
-                                        pathname === item.href && "bg-primary/80 text-primary-foreground shadow-md"
+                                        "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 text-muted-foreground hover:bg-card hover:text-primary",
+                                        pathname === item.href && "bg-card text-primary font-semibold shadow-md"
                                     )}
                                 >
                                     <item.icon className="h-5 w-5" />
