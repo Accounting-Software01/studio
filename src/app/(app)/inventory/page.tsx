@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface InventoryItem {
   code: string;
@@ -44,7 +45,7 @@ const formatCurrency = (amount: number) => {
     }).format(amount);
 };
 
-const InventoryTable = ({ items, title }: { items: InventoryItem[], title: string }) => {
+const InventoryTable = ({ items, title, onAddItem }: { items: InventoryItem[], title: string, onAddItem: () => void }) => {
     const totalValue = items.reduce((acc, item) => acc + (item.quantity * item.unitCost), 0);
 
     return (
@@ -52,8 +53,8 @@ const InventoryTable = ({ items, title }: { items: InventoryItem[], title: strin
             <CardHeader>
                 <div className="flex justify-between items-center">
                     <CardTitle>{title}</CardTitle>
-                     <Button size="sm" variant="outline">
-                        <PlusCircle className="mr-2" />
+                     <Button size="sm" variant="outline" onClick={onAddItem}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
                         Add New Item
                     </Button>
                 </div>
@@ -94,19 +95,47 @@ const InventoryTable = ({ items, title }: { items: InventoryItem[], title: strin
 
 
 const InventoryPage = () => {
+    const { toast } = useToast();
+
+    const handleAddFinishedGood = () => {
+        // This is a simulation. In a real app, this would open a form,
+        // send data to the backend, and then the backend would trigger the journal entry.
+        const newItemValue = 100 * 1.50; // 100 units at $1.50
+        console.log('--- SIMULATING AUTOMATIC JOURNAL ENTRY ---');
+        console.log('A new finished good has been added.');
+        console.log(`Value: ${formatCurrency(newItemValue)}`);
+        console.log('Journal Entry created:');
+        console.log(`DEBIT: 101340 - Inventory - Finished Goods | Amount: ${formatCurrency(newItemValue)}`);
+        console.log(`CREDIT: 201020 - Trade Creditors - Suppliers | Amount: ${formatCurrency(newItemValue)}`);
+        console.log('--- SIMULATION END ---');
+
+        toast({
+            title: "Inventory Action Simulated",
+            description: "Check the console to see the automatic journal entry that would be created.",
+        });
+    };
+
+    const handleAddRawMaterial = () => {
+         toast({
+            title: "Action Not Implemented",
+            description: "This is a placeholder for adding a new raw material.",
+            variant: "destructive"
+        });
+    }
+
   return (
     <>
-      <p className="text-muted-foreground mb-6">Track stock levels for finished goods and raw materials.</p>
+      <p className="text-muted-foreground mb-6">Track stock levels for finished goods and raw materials. Adding items here can automatically update your accounting records.</p>
       <Tabs defaultValue="finished-goods">
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="finished-goods">Finished Goods</TabsTrigger>
             <TabsTrigger value="raw-materials">Raw Materials</TabsTrigger>
         </TabsList>
         <TabsContent value="finished-goods" className="mt-6">
-            <InventoryTable items={finishedGoods} title="Finished Goods Inventory" />
+            <InventoryTable items={finishedGoods} title="Finished Goods Inventory" onAddItem={handleAddFinishedGood} />
         </TabsContent>
         <TabsContent value="raw-materials" className="mt-6">
-            <InventoryTable items={rawMaterials} title="Raw Materials Inventory" />
+            <InventoryTable items={rawMaterials} title="Raw Materials Inventory" onAddItem={handleAddRawMaterial} />
         </TabsContent>
       </Tabs>
     </>
