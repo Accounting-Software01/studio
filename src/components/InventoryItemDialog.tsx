@@ -32,10 +32,10 @@ export function InventoryItemDialog({ open, onOpenChange, mode, onSuccess }: Inv
     const [isLoading, setIsLoading] = useState(false);
     const [isItemSelectionOpen, setIsItemSelectionOpen] = useState(false);
 
-    const title = mode === 'finished' ? 'Add Finished Good' : 'Add Raw Material';
+    const title = mode === 'finished' ? 'Add Finished Good Stock' : 'Add Raw Material Stock';
     const description = mode === 'finished' 
-        ? 'This will record a new finished good and automatically create a journal entry.'
-        : 'This will record a new raw material and automatically create a journal entry.';
+        ? 'Record a purchase of finished goods. This will update inventory levels and post a journal entry.'
+        : 'Record a purchase of raw materials. This will update inventory levels and post a journal entry.';
     const endpoint = mode === 'finished' 
         ? 'https://hariindustries.net/busa-api/database/add-finished-good.php'
         : 'https://hariindustries.net/busa-api/database/add-raw-material.php';
