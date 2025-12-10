@@ -27,10 +27,9 @@ interface RegisterItemDialogProps {
 interface ItemDetails {
     name: string;
     description: string;
-    price: string;
+    sellingPrice: string;
     sku: string;
     unitOfMeasure: string;
-    productCategory: string;
 }
 
 export function RegisterItemDialog({ open, onOpenChange, mode, onSuccess }: RegisterItemDialogProps) {
@@ -38,17 +37,15 @@ export function RegisterItemDialog({ open, onOpenChange, mode, onSuccess }: Regi
     const [details, setDetails] = useState<ItemDetails>({
         name: '',
         description: '',
-        price: '',
+        sellingPrice: '',
         sku: '',
         unitOfMeasure: '',
-        productCategory: ''
     });
     const [isLoading, setIsLoading] = useState(false);
 
     const title = mode === 'finished' ? 'Register New Finished Product' : 'Register New Raw Material';
     const description = `Add a new item to your master list. This does not record stock, only the item's details.`;
     
-    // In a real app, the endpoint might differ for products vs materials.
     const endpoint = 'https://hariindustries.net/busa-api/database/register-product.php';
 
     const handleInputChange = (field: keyof ItemDetails, value: string) => {
@@ -56,19 +53,20 @@ export function RegisterItemDialog({ open, onOpenChange, mode, onSuccess }: Regi
     };
 
     const resetForm = () => {
-        setDetails({ name: '', description: '', price: '', sku: '', unitOfMeasure: '', productCategory: '' });
+        setDetails({ name: '', description: '', sellingPrice: '', sku: '', unitOfMeasure: '' });
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Basic validation
-        if (Object.values(details).some(val => val.trim() === '')) {
+        const { name, description, sellingPrice, sku, unitOfMeasure } = details;
+
+        if (!name || !sellingPrice || !sku || !unitOfMeasure) {
             toast({
                 variant: 'destructive',
                 title: 'Missing Information',
-                description: 'Please fill out all fields to register the new item.',
+                description: 'Please fill out all required fields to register the new item.',
             });
             setIsLoading(false);
             return;
@@ -79,8 +77,11 @@ export function RegisterItemDialog({ open, onOpenChange, mode, onSuccess }: Regi
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    ...details,
-                    price: parseFloat(details.price) || 0,
+                    name,
+                    description,
+                    sellingPrice: parseFloat(sellingPrice) || 0,
+                    sku,
+                    unitOfMeasure,
                 }),
             });
 
@@ -128,8 +129,8 @@ export function RegisterItemDialog({ open, onOpenChange, mode, onSuccess }: Regi
                             <Textarea id="description" value={details.description} onChange={(e) => handleInputChange('description', e.target.value)} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="price" className="text-right">Selling Price</Label>
-                            <Input id="price" type="number" value={details.price} onChange={(e) => handleInputChange('price', e.target.value)} className="col-span-3" placeholder="0.00" />
+                            <Label htmlFor="sellingPrice" className="text-right">Selling Price</Label>
+                            <Input id="sellingPrice" type="number" value={details.sellingPrice} onChange={(e) => handleInputChange('sellingPrice', e.target.value)} className="col-span-3" placeholder="0.00" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="sku" className="text-right">SKU</Label>
@@ -138,10 +139,6 @@ export function RegisterItemDialog({ open, onOpenChange, mode, onSuccess }: Regi
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="unitOfMeasure" className="text-right">Unit of Measure</Label>
                             <Input id="unitOfMeasure" value={details.unitOfMeasure} onChange={(e) => handleInputChange('unitOfMeasure', e.target.value)} className="col-span-3" placeholder="e.g., Bottle, Kg, Pack" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="productCategory" className="text-right">Category</Label>
-                            <Input id="productCategory" value={details.productCategory} onChange={(e) => handleInputChange('productCategory', e.target.value)} className="col-span-3" placeholder="e.g., Beverages" />
                         </div>
                     </div>
                     <DialogFooter>
