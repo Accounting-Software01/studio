@@ -83,7 +83,7 @@ const NewPaymentVoucherPage = () => {
     };
 
     const handlePostVoucher = async () => {
-        if (!voucherDate || !payeeName.trim() || !paymentAccountId) {
+        if (!voucherDate || !payeeName || payeeName.trim() === '' || !paymentAccountId) {
             toast({ variant: 'destructive', title: 'Missing Information', description: 'Please provide a date, payee name, and payment account.' });
             return;
         }
