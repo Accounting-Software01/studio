@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { LogOut, Boxes } from 'lucide-react';
+import { LogOut, Boxes, X, Minus } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { getCurrentUser, logout } from '@/lib/auth';
 import { Sidebar } from '@/components/Sidebar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { cn } from '@/lib/utils';
 
 
 const useUser = () => {
@@ -51,6 +52,8 @@ export default function AppLayout({
     const router = useRouter();
     const pathname = usePathname();
     const { user, isLoading } = useUser();
+    const [isCardCollapsed, setIsCardCollapsed] = useState(false);
+
 
     useEffect(() => {
         if (!isLoading && !user) {
@@ -79,13 +82,17 @@ export default function AppLayout({
         <div className="relative z-10 flex h-[90vh] w-full max-w-7xl mx-auto gap-4">
             <Sidebar />
             <main className="flex-1 h-full overflow-hidden">
-                <Card className="w-full h-full flex flex-col shadow-2xl bg-card/80 backdrop-blur-xl">
+                <Card className="w-full h-full flex flex-col shadow-2xl bg-card/80 backdrop-blur-xl transition-all duration-300">
                     <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
                         <div className="flex items-center gap-2">
-                           <div className="flex items-center gap-1.5">
-                                <Link href="/dashboard" className="h-3 w-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"></Link>
-                                <button className="h-3 w-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"></button>
-                                <button className="h-3 w-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"></button>
+                           <div className="flex items-center gap-2 group">
+                                <Button size="icon-sm" variant="ghost" className="rounded-full bg-red-500 hover:bg-red-600 text-red-900" onClick={() => setIsCardCollapsed(!isCardCollapsed)}>
+                                    <X className="opacity-0 group-hover:opacity-100 transition-opacity"/>
+                                </Button>
+                                <Button size="icon-sm" variant="ghost" className="rounded-full bg-yellow-500 hover:bg-yellow-600 text-yellow-900" onClick={() => setIsCardCollapsed(!isCardCollapsed)}>
+                                    <Minus className="opacity-0 group-hover:opacity-100 transition-opacity"/>
+                                </Button>
+                               <button className="h-3 w-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"></button>
                            </div>
                             <div className="flex items-center gap-2 ml-4">
                                 <h1 className="text-base font-semibold">{title}</h1>
@@ -99,7 +106,12 @@ export default function AppLayout({
                             </Button>
                          </div>
                     </CardHeader>
-                    <div className="flex-grow overflow-hidden">
+                   <div
+                        className={cn(
+                            "flex-grow overflow-hidden transition-all duration-500 ease-in-out",
+                            isCardCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
+                        )}
+                    >
                         <ScrollArea className="h-full">
                              <CardContent className="p-6">
                                 {children}
