@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { InventoryItemDialog } from '@/components/InventoryItemDialog';
 
 interface InventoryItem {
   code: string;
@@ -95,6 +96,11 @@ const InventoryTable = ({
                         </TableFooter>
                     </Table>
                 )}
+                 { !isLoading && !error && items.length === 0 && (
+                    <div className="flex justify-center items-center h-40 text-muted-foreground">
+                        <p>No inventory items found.</p>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );
@@ -107,67 +113,64 @@ const InventoryPage = () => {
     const [rawMaterials, setRawMaterials] = useState<InventoryItem[]>([]);
     const [loading, setLoading] = useState({ goods: true, materials: true });
     const [error, setError] = useState({ goods: null, materials: null });
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [dialogMode, setDialogMode] = useState<'finished' | 'raw'>('finished');
 
-    useEffect(() => {
-        const fetchFinishedGoods = async () => {
-            try {
-                const response = await fetch('https://hariindustries.net/busa-api/database/get-finished-goods.php');
-                if (!response.ok) throw new Error('Failed to fetch finished goods.');
-                const data = await response.json();
-                setFinishedGoods(data);
-            } catch (e: any) {
-                setError(prev => ({ ...prev, goods: e.message }));
-            } finally {
-                setLoading(prev => ({ ...prev, goods: false }));
-            }
-        };
-
-        const fetchRawMaterials = async () => {
-             try {
-                const response = await fetch('https://hariindustries.net/busa-api/database/get-raw-materials.php');
-                if (!response.ok) throw new Error('Failed to fetch raw materials.');
-                const data = await response.json();
-                setRawMaterials(data);
-            } catch (e: any) {
-                setError(prev => ({ ...prev, materials: e.message }));
-            } finally {
-                setLoading(prev => ({ ...prev, materials: false }));
-            }
-        };
-
-        fetchFinishedGoods();
-        fetchRawMaterials();
+    const fetchFinishedGoods = useCallback(async () => {
+        setLoading(prev => ({ ...prev, goods: true }));
+        try {
+            const response = await fetch('https://hariindustries.net/busa-api/database/get-finished-goods.php');
+            if (!response.ok) throw new Error('Failed to fetch finished goods.');
+            const data = await response.json();
+            setFinishedGoods(data);
+        } catch (e: any) {
+            setError(prev => ({ ...prev, goods: e.message }));
+        } finally {
+            setLoading(prev => ({ ...prev, goods: false }));
+        }
     }, []);
 
-    const handleAddFinishedGood = () => {
-        // This is a simulation. In a real app, this would open a form,
-        // send data to the backend, and then the backend would trigger the journal entry.
-        const newItemValue = 100 * 1.50; // 100 units at $1.50
-        console.log('--- SIMULATING AUTOMATIC JOURNAL ENTRY ---');
-        console.log('A new finished good has been added.');
-        console.log(`Value: ${formatCurrency(newItemValue)}`);
-        console.log('Journal Entry created:');
-        console.log(`DEBIT: 101340 - Inventory - Finished Goods | Amount: ${formatCurrency(newItemValue)}`);
-        console.log(`CREDIT: 201020 - Trade Creditors - Suppliers | Amount: ${formatCurrency(newItemValue)}`);
-        console.log('--- SIMULATION END ---');
+    const fetchRawMaterials = useCallback(async () => {
+        setLoading(prev => ({ ...prev, materials: true }));
+         try {
+            const response = await fetch('https://hariindustries.net/busa-api/database/get-raw-materials.php');
+            if (!response.ok) throw new Error('Failed to fetch raw materials.');
+            const data = await response.json();
+            setRawMaterials(data);
+        } catch (e: any) {
+            setError(prev => ({ ...prev, materials: e.message }));
+        } finally {
+            setLoading(prev => ({ ...prev, materials: false }));
+        }
+    }, []);
 
-        toast({
-            title: "Inventory Action Simulated",
-            description: "Check the console to see the automatic journal entry that would be created.",
-        });
+    useEffect(() => {
+        fetchFinishedGoods();
+        fetchRawMaterials();
+    }, [fetchFinishedGoods, fetchRawMaterials]);
+
+    const handleOpenDialog = (mode: 'finished' | 'raw') => {
+        setDialogMode(mode);
+        setIsDialogOpen(true);
     };
 
-    const handleAddRawMaterial = () => {
-         toast({
-            title: "Action Not Implemented",
-            description: "This is a placeholder for adding a new raw material.",
-            variant: "destructive"
-        });
+    const handleItemAdded = () => {
+        if (dialogMode === 'finished') {
+            fetchFinishedGoods();
+        } else {
+            fetchRawMaterials();
+        }
     }
 
   return (
     <>
-      <p className="text-muted-foreground mb-6">Track stock levels for finished goods and raw materials. Adding items here can automatically update your accounting records.</p>
+      <InventoryItemDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        mode={dialogMode}
+        onSuccess={handleItemAdded}
+      />
+      <p className="text-muted-foreground mb-6">Track stock levels for finished goods and raw materials. Adding items here automatically updates your accounting records.</p>
       <Tabs defaultValue="finished-goods">
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="finished-goods">Finished Goods</TabsTrigger>
@@ -177,7 +180,7 @@ const InventoryPage = () => {
             <InventoryTable 
                 items={finishedGoods} 
                 title="Finished Goods Inventory" 
-                onAddItem={handleAddFinishedGood} 
+                onAddItem={() => handleOpenDialog('finished')} 
                 isLoading={loading.goods}
                 error={error.goods}
             />
@@ -186,7 +189,7 @@ const InventoryPage = () => {
             <InventoryTable 
                 items={rawMaterials} 
                 title="Raw Materials Inventory" 
-                onAddItem={handleAddRawMaterial}
+                onAddItem={() => handleOpenDialog('raw')}
                 isLoading={loading.materials}
                 error={error.materials}
             />
