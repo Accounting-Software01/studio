@@ -34,8 +34,8 @@ export function Sidebar() {
     const pathname = usePathname();
 
     return (
-        <aside className="w-64 flex-shrink-0 rounded-2xl bg-primary/10 backdrop-blur-lg border border-white/10 shadow-lg flex flex-col">
-            <div className="p-6 flex items-center justify-center gap-2 border-b border-white/10">
+        <aside className="w-64 flex-shrink-0 rounded-2xl bg-card/60 backdrop-blur-lg border shadow-lg flex flex-col">
+            <div className="p-6 flex items-center justify-center gap-2 border-b">
                 <Library className="h-8 w-8 text-primary" />
                 <h2 className="text-2xl font-bold text-primary">ClearBooks</h2>
             </div>
@@ -47,8 +47,8 @@ export function Sidebar() {
                                 <Link 
                                     href={item.href} 
                                     className={cn(
-                                        "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 text-muted-foreground hover:bg-card hover:text-primary",
-                                        pathname === item.href && "bg-card text-primary font-semibold shadow-md"
+                                        "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 text-card-foreground/70 hover:bg-primary/10 hover:text-primary",
+                                        pathname === item.href && "bg-primary text-primary-foreground font-semibold shadow-md hover:bg-primary/90 hover:text-primary-foreground"
                                     )}
                                 >
                                     <item.icon className="h-5 w-5" />
@@ -59,7 +59,7 @@ export function Sidebar() {
                     </ul>
                 </nav>
             </ScrollArea>
-            <div className="p-4 border-t border-white/10 text-center text-xs text-gray-400">
+            <div className="p-4 border-t text-center text-xs text-muted-foreground">
                 <p>&copy; 2024 ClearBooks</p>
             </div>
         </aside>

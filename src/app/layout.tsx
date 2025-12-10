@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
+import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
   title: 'ClearBooks',
@@ -14,16 +15,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className={cn("font-body antialiased bg-cover bg-center bg-fixed", "dark")} style={{ backgroundImage: "url('/background.jpg')" }}>
-        <div className="absolute inset-0 bg-black/50 z-0"/>
-        {children}
-        <Toaster />
+      <body className={cn("font-body antialiased bg-cover bg-center bg-fixed")}>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+        >
+            <div className="absolute inset-0 bg-black/50 z-0"/>
+            <div className="p-4 min-h-screen flex items-center justify-center">
+                {children}
+            </div>
+            <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
