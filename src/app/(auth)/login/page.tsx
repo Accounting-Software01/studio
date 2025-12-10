@@ -55,12 +55,18 @@ export default function LoginPage() {
             </div>
           </CardHeader>
           <div className="grid grid-cols-1 md:grid-cols-2">
-            <div className="p-8 bg-black/20 hidden md:flex flex-col justify-center items-center text-center">
-              <Library className="h-12 w-12 text-primary mb-4" />
-              <h2 className="text-2xl font-bold">ClearBooks</h2>
-              <p className="text-muted-foreground mt-2">
-                Your comprehensive financial command center.
-              </p>
+            <div
+              className="relative p-8 bg-cover bg-center hidden md:flex flex-col justify-center items-center text-center text-white"
+              style={{ backgroundImage: "url('/login-bg.jpg')" }}
+            >
+              <div className="absolute inset-0 bg-black/50" />
+              <div className="relative z-10">
+                  <Library className="h-12 w-12 text-white mb-4 mx-auto" />
+                  <h2 className="text-2xl font-bold">ClearBooks</h2>
+                  <p className="text-white/80 mt-2">
+                    Your comprehensive financial command center.
+                  </p>
+              </div>
             </div>
             <div className="p-8">
               <div className="text-center mb-6">
