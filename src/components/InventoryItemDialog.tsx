@@ -13,8 +13,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ItemSelectionDialog } from './ItemSelectionDialog';
 
 interface InventoryItemDialogProps {
   open: boolean;
@@ -29,6 +30,7 @@ export function InventoryItemDialog({ open, onOpenChange, mode, onSuccess }: Inv
     const [quantity, setQuantity] = useState('');
     const [unitCost, setUnitCost] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isItemSelectionOpen, setIsItemSelectionOpen] = useState(false);
 
     const title = mode === 'finished' ? 'Add Finished Good' : 'Add Raw Material';
     const description = mode === 'finished' 
@@ -95,39 +97,54 @@ export function InventoryItemDialog({ open, onOpenChange, mode, onSuccess }: Inv
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
-                <form onSubmit={handleSubmit}>
-                    <DialogHeader>
-                        <DialogTitle>{title}</DialogTitle>
-                        <DialogDescription>{description}</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="name" className="text-right">Name</Label>
-                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" placeholder="e.g., Premium Water 500ml" />
+        <>
+            <ItemSelectionDialog
+                open={isItemSelectionOpen}
+                onOpenChange={setIsItemSelectionOpen}
+                type={mode === 'finished' ? 'product' : 'material'}
+                onSelectItem={(itemName) => {
+                    setName(itemName);
+                    setIsItemSelectionOpen(false);
+                }}
+            />
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <form onSubmit={handleSubmit}>
+                        <DialogHeader>
+                            <DialogTitle>{title}</DialogTitle>
+                            <DialogDescription>{description}</DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="name" className="text-right">Name</Label>
+                                <div className="col-span-3 flex gap-2">
+                                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Type or select a name" />
+                                    <Button type="button" variant="outline" size="icon" onClick={() => setIsItemSelectionOpen(true)}>
+                                        <UserPlus className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="quantity" className="text-right">Quantity</Label>
+                                <Input id="quantity" type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="col-span-3" placeholder="e.g., 1500" />
+                            </div>
+                             <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="unitCost" className="text-right">Unit Cost</Label>
+                                <Input id="unitCost" type="number" step="0.01" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} className="col-span-3" placeholder="e.g., 50.00" />
+                            </div>
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="quantity" className="text-right">Quantity</Label>
-                            <Input id="quantity" type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="col-span-3" placeholder="e.g., 1500" />
-                        </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="unitCost" className="text-right">Unit Cost</Label>
-                            <Input id="unitCost" type="number" step="0.01" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} className="col-span-3" placeholder="e.g., 0.50" />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                         <DialogClose asChild>
-                            <Button type="button" variant="secondary">Cancel</Button>
-                        </DialogClose>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Add Item
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+                        <DialogFooter>
+                             <DialogClose asChild>
+                                <Button type="button" variant="secondary">Cancel</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Add Item
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }
-
