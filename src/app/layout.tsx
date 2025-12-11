@@ -1,8 +1,13 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/theme-provider';
+import { usePathname } from 'next/navigation';
+import { Sidebar } from '@/components/Sidebar';
+import AppLayout from './AppLayout';
+
 
 export const metadata: Metadata = {
   title: 'ClearBooks',
@@ -28,11 +33,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
-            <div className="absolute inset-0 bg-black/50 z-0"/>
-            <div className="p-4 min-h-screen flex items-center justify-center">
-                {children}
-            </div>
-            <Toaster />
+          <AppLayout>
+            {children}
+          </AppLayout>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
