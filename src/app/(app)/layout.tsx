@@ -74,7 +74,7 @@ export default function AppLayout({
         );
     }
     
-    const currentNavItem = navItems.find(item => pathname.startsWith(item.href));
+    const currentNavItem = navItems.find(item => pathname === item.href);
     const title = currentNavItem?.label || 'ClearBooks';
 
 

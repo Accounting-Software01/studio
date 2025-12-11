@@ -50,7 +50,7 @@ export function Sidebar() {
                                     href={item.href} 
                                     className={cn(
                                         "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 text-card-foreground/70 hover:bg-white/50 hover:text-primary dark:hover:bg-white/10",
-                                        pathname.startsWith(item.href) && "bg-white text-primary font-semibold shadow-md hover:bg-white/90 dark:bg-primary/20 dark:text-primary-foreground dark:hover:text-primary-foreground"
+                                        pathname === item.href && "bg-white text-primary font-semibold shadow-md hover:bg-white/90 dark:bg-primary/20 dark:text-primary-foreground dark:hover:text-primary-foreground"
                                     )}
                                 >
                                     <item.icon className="h-5 w-5" />
