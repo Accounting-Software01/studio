@@ -4,8 +4,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/theme-provider';
-import { usePathname } from 'next/navigation';
-import { Sidebar } from '@/components/Sidebar';
 import AppLayout from './AppLayout';
 
 
