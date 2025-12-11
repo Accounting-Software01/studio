@@ -103,7 +103,7 @@ const NewPaymentVoucherPage = () => {
         };
 
         try {
-            const response = await fetch('https://hariindustries.net/busa-api/database/payment-voucher.php', {
+            const response = await fetch('/api/payment-voucher', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
